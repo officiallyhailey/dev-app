@@ -30,7 +30,7 @@ export default function Hub() {
             <div style={{ width: '100%', maxWidth: '720px' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-                    <div style={{ width: '34px', height: '34px', borderRadius: '7px', background: ACCENT, border: `1.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: ACCENT_TEXT, fontFamily: MONO, fontSize: '14px' }}>AC</div>
+                    <div style={{ width: '34px', height: '34px', borderRadius: '7px', background: ACCENT, border: `1.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: ACCENT_TEXT, fontFamily: MONO, fontSize: '14px' }}>Dev</div>
                     <div style={{ fontFamily: MONO, fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-primary)' }}>Workspace</div>
                 </div>
                 <h1 style={{ margin: '18px 0 28px', fontFamily: MONO, fontSize: 'clamp(30px, 7vw, 52px)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase' }}>
@@ -63,7 +63,7 @@ export default function Hub() {
                     ))}
                 </div>
 
-                <div style={{ ...monoLabel, color: 'var(--text-muted)', marginTop: '28px', textAlign: 'center' }}>// AC Airtable · {APPS.length} interfaces</div>
+                <div style={{ ...monoLabel, color: 'var(--text-muted)', marginTop: '28px', textAlign: 'center' }}>// Dev Tool · {APPS.length} interfaces</div>
             </div>
         </div>
     );
