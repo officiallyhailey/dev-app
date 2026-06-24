@@ -491,6 +491,17 @@ function MapExtensionApp() {
     const [isMapReady,         setIsMapReady]         = useState(false);
     const [isWarningDismissed, setIsWarningDismissed] = useState(false);
     const [isPromptExpanded,   setIsPromptExpanded]   = useState(false);
+    // State (not just the ref) so the loading overlay reliably clears on re-render.
+    const [cameraReady,        setCameraReady]        = useState(false);
+    // Stack map-over-list on phones instead of the desktop side-by-side split.
+    const [isNarrow,           setIsNarrow]           = useState(false);
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 768px)');
+        const update = () => setIsNarrow(mq.matches);
+        update();
+        mq.addEventListener('change', update);
+        return () => mq.removeEventListener('change', update);
+    }, []);
 
     // Mapbox token comes from an env var (was an Airtable custom property / secret).
     const mapboxApiKey = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? '';
@@ -533,7 +544,7 @@ function MapExtensionApp() {
                 const bounds = new mapboxgl.LngLatBounds([Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]);
                 const mapInstance = mapRef.current?.getMap?.();
                 if (mapInstance) {
-                    const camera = mapInstance.cameraForBounds(bounds, {padding: 80});
+                    const camera = mapInstance.cameraForBounds(bounds, {padding: 40});
                     if (camera?.center) {
                         const center = mapboxgl.LngLat.convert(camera.center as mapboxgl.LngLatLike);
                         setViewState({latitude: center.lat, longitude: center.lng, zoom: Math.min(Math.max(typeof camera.zoom === 'number' ? camera.zoom : 8, 1), 16)});
@@ -542,12 +553,12 @@ function MapExtensionApp() {
                     setViewState({latitude: (Math.min(...lats) + Math.max(...lats)) / 2, longitude: (Math.min(...lngs) + Math.max(...lngs)) / 2, zoom: 8});
                 }
             }
-            initialCameraAppliedRef.current = true;
+            initialCameraAppliedRef.current = true; setCameraReady(true);
             return;
         }
         if (autoCenterOnLoad && hasGeocodingWork && geocodingStatus === GeocodingStatus.Running) return;
         if (savedViewRef.current) setViewState(savedViewRef.current);
-        initialCameraAppliedRef.current = true;
+        initialCameraAppliedRef.current = true; setCameraReady(true);
     }, [isConfigured, isMapReady, autoCenterOnLoad, geocodingStatus, locations, savedViewRef, initialCameraAppliedRef, setViewState, hasGeocodingWork]);
 
     const handleMarkerClick = (location: LocationData) => {
@@ -570,7 +581,7 @@ function MapExtensionApp() {
     const suggestedPrompt: string | undefined = undefined;
     const shouldShowWarning   = false; // SDK token-warning flow not used in standalone app
     const shouldWaitForGeocoding = isConfigured && hasGeocodingWork && geocodingStatus !== GeocodingStatus.Completed;
-    const hideMapUntilReady   = !initialCameraAppliedRef.current || shouldWaitForGeocoding;
+    const hideMapUntilReady   = !cameraReady || shouldWaitForGeocoding;
 
     // (SDK token-fetch error/loading states removed — token now comes from env;
     //  the !isConfigured state below covers a missing token.)
@@ -647,7 +658,7 @@ function MapExtensionApp() {
                 @keyframes spin { to { transform: rotate(360deg); } }
             `}</style>
 
-            <div style={{width: '100%', height: '100vh', display: 'flex', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: '16px', gap: '16px', overflow: 'hidden'}}>
+            <div style={{width: '100%', height: '100vh', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: isNarrow ? '12px' : '16px', gap: isNarrow ? '12px' : '16px', overflow: 'hidden'}}>
 
                 {/* Warning banner */}
                 {shouldShowWarning && (
@@ -662,8 +673,8 @@ function MapExtensionApp() {
                     </div>
                 )}
 
-                {/* ── LEFT: Map panel ────────────────────────────────────── */}
-                <div style={{width: '60%', flexShrink: 0, borderRadius: '24px', overflow: 'hidden', border: '1.5px solid var(--ink-line)', boxShadow: 'var(--neu-raised)', position: 'relative'}}>
+                {/* ── Map panel (top on mobile, left on desktop) ─────────── */}
+                <div style={{width: isNarrow ? '100%' : '60%', height: isNarrow ? '42vh' : 'auto', flexShrink: 0, borderRadius: isNarrow ? '18px' : '24px', overflow: 'hidden', border: '1.5px solid var(--ink-line)', boxShadow: 'var(--neu-raised)', position: 'relative'}}>
                     {/* Loading overlay */}
                     {hideMapUntilReady && (
                         <div style={{position: 'absolute', inset: 0, zIndex: 10, background: 'var(--neu-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
@@ -713,8 +724,8 @@ function MapExtensionApp() {
                     </MapBoxMap>
                 </div>
 
-                {/* ── RIGHT: Jobs panel ──────────────────────────────────── */}
-                <div style={{flex: 1, borderRadius: '24px', background: 'var(--neu-bg)', border: '1.5px solid var(--ink-line)', boxShadow: 'var(--neu-raised)', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+                {/* ── Jobs list panel (below on mobile, right on desktop) ── */}
+                <div style={{flex: 1, minHeight: 0, width: '100%', borderRadius: isNarrow ? '18px' : '24px', background: 'var(--neu-bg)', border: '1.5px solid var(--ink-line)', boxShadow: 'var(--neu-raised)', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
                     <JobsPanel records={records} table={table} pinnedRecordId={pinnedRecordId} onClearPin={() => setPinnedRecordId(null)} />
                 </div>
             </div>
