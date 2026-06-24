@@ -1,0 +1,55 @@
+/*
+ * Global palette override — neutral gray + yellow.
+ *
+ * Each ported interface injects its own `:root` CSS variables (a warm/brown
+ * palette). We override them here using `html:root` selectors, which have higher
+ * specificity than the interfaces' plain `:root` rules, so this wins the cascade
+ * without editing every interface file. The yellow accent (a JS constant in each
+ * file) is kept; only the surfaces/grays are re-tinted from warm → neutral.
+ */
+
+/* ── Light: lighter neutral gray ─────────────────────────────────────────── */
+html:root {
+    --page: #f4f4f5;
+    --bg: #f4f4f5;
+    --surface: #ffffff;
+    --surface-2: #ececee;
+    --border: rgba(24, 24, 27, 0.14);
+    --ink-line: rgba(24, 24, 27, 0.16);
+    --grid-line: rgba(24, 24, 27, 0.045);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    --shadow-hover: 0 10px 26px rgba(0, 0, 0, 0.12);
+    --text-primary: #1c1c1f;
+    --text-muted: #71717a;
+    --divider: rgba(24, 24, 27, 0.10);
+    --accent-soft: #fbeac4;
+    /* jobs (neumorphic) extras */
+    --neu-bg: #ffffff;
+    --neu-light: #ffffff;
+    --neu-inset-color: #ececee;
+}
+
+/* ── Dark: neutral dark gray (not brown) ─────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+    html:root {
+        --page: #161618;
+        --bg: #161618;
+        --surface: #202023;
+        --surface-2: #2a2a2e;
+        --border: rgba(255, 255, 255, 0.14);
+        --ink-line: rgba(255, 255, 255, 0.16);
+        --grid-line: rgba(255, 255, 255, 0.04);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        --shadow-hover: 0 10px 26px rgba(0, 0, 0, 0.55);
+        --text-primary: #ededee;
+        --text-muted: #a1a1aa;
+        --divider: rgba(255, 255, 255, 0.10);
+        --accent-soft: rgba(245, 193, 61, 0.16);
+        /* jobs (neumorphic) extras */
+        --neu-bg: #202023;
+        --neu-light: #2a2a2e;
+        --neu-inset-color: #2a2a2e;
+    }
+}

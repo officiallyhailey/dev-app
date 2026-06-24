@@ -6,6 +6,9 @@ import { BaseModel, RecordModel, TableModel } from './models';
 import { recordsKey, SCHEMA_KEY } from './keys';
 import type { RawRecord } from './types';
 
+export { FieldType } from './fieldTypes';
+export type { FieldType as FieldTypeValue } from './fieldTypes';
+
 const jsonFetcher = async (url: string) => {
     const res = await fetch(url);
     if (!res.ok) {
@@ -53,13 +56,13 @@ class ErrorBoundary extends React.Component<
                 <div style={{
                     minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     padding: '32px', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                    background: '#eceae4', color: '#23262e',
+                    background: 'var(--page, #f4f4f5)', color: 'var(--text-primary, #1c1c1f)',
                 }}>
                     <div style={{ maxWidth: '440px', textAlign: 'center' }}>
                         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
                             // Could not load data
                         </div>
-                        <div style={{ fontSize: '14px', lineHeight: 1.6, color: '#6b6759' }}>{this.state.error.message}</div>
+                        <div style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-muted, #71717a)' }}>{this.state.error.message}</div>
                     </div>
                 </div>
             );
@@ -72,7 +75,7 @@ function FullScreenLoader() {
     return (
         <div style={{
             minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: '#eceae4', color: '#8b8678',
+            background: 'var(--page, #f4f4f5)', color: 'var(--text-muted, #71717a)',
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
             fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
         }}>

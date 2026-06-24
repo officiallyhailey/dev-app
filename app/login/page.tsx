@@ -49,7 +49,7 @@ function LoginForm() {
     return (
         <div style={{
             minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '24px', background: '#eceae4',
+            padding: '24px', background: '#f4f4f5',
             backgroundImage: 'linear-gradient(rgba(35,38,46,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(35,38,46,0.05) 1px, transparent 1px)',
             backgroundSize: '38px 38px',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
