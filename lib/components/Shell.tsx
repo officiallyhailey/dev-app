@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { TopNav } from './TopNav';
+import { ScrollProgress } from './ScrollProgress';
 
 /**
  * App shell for the full-screen interfaces: brutalist top nav above a
@@ -9,10 +10,12 @@ import { TopNav } from './TopNav';
  * (not 100vh) so it fills the area left below the nav.
  */
 export function Shell({ children }: { children: React.ReactNode }) {
+    const mainRef = useRef<HTMLElement | null>(null);
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', background: 'var(--page)' }}>
+            <ScrollProgress targetRef={mainRef} />
             <TopNav />
-            <main style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
+            <main ref={mainRef} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
                 {children}
             </main>
         </div>

@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { BookOpenIcon, CodeIcon, CalendarBlankIcon, BriefcaseIcon, WrenchIcon, ArrowRightIcon } from '@phosphor-icons/react';
+import { BookOpenIcon, CodeIcon, CalendarBlankIcon, BriefcaseIcon, WrenchIcon, ArrowRightIcon, CaretDownIcon } from '@phosphor-icons/react';
 import { TopNav } from '@/lib/components/TopNav';
+import { ScrollProgress } from '@/lib/components/ScrollProgress';
 import { useIsNarrow } from '@/lib/useIsNarrow';
 
 const DISPLAY = 'var(--font-display)';
@@ -104,6 +105,7 @@ function HeroComputer({ isNarrow }: { isNarrow: boolean }) {
 export default function Landing() {
     const isNarrow = useIsNarrow();
     const marqueeItems = ['Cheat Sheets', 'Dev Work', 'Events', 'Jobs', 'Tools'];
+    const scrollToSections = () => document.getElementById('sections')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     return (
         <div style={{ minHeight: '100dvh', background: 'var(--page)', display: 'flex', flexDirection: 'column' }}>
@@ -113,6 +115,7 @@ export default function Landing() {
                 .dd-cta:hover { background: var(--accent) !important; color: var(--accent-text) !important; }
             `}</style>
 
+            <ScrollProgress />
             <div style={{ position: 'sticky', top: 0, zIndex: 1200 }}><TopNav /></div>
 
             {/* ── Hero — everything above the fold, one full screen ──────────── */}
@@ -147,13 +150,6 @@ export default function Landing() {
                                 }}>
                                     Start exploring <ArrowRightIcon size={14} weight="bold" />
                                 </Link>
-                                <a href="#sections" className="dd-cta" style={{
-                                    ...mono, fontSize: '12px', textDecoration: 'none', padding: '13px 20px',
-                                    background: 'var(--surface)', color: 'var(--text-primary)', border: '2px solid var(--text-primary)',
-                                    transition: 'background 0.12s, color 0.12s',
-                                }}>
-                                    Browse sections
-                                </a>
                             </div>
                         </div>
 
@@ -170,6 +166,17 @@ export default function Landing() {
                         }}>
                             // See how it&apos;s built <ArrowRightIcon size={14} weight="bold" />
                         </Link>
+                    </div>
+
+                    {/* Floating down-arrow → scroll to the sections */}
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <button onClick={scrollToSections} aria-label="Scroll to sections" className="dd-bob" style={{
+                            width: '46px', height: '46px', flexShrink: 0, cursor: 'pointer',
+                            border: '2px solid var(--text-primary)', background: 'var(--accent)', color: 'var(--accent-text)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '4px 4px 0 var(--text-primary)',
+                        }}>
+                            <CaretDownIcon size={22} weight="bold" />
+                        </button>
                     </div>
                 </div>
 

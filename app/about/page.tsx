@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRightIcon, ArrowLeftIcon } from '@phosphor-icons/react';
 import { TopNav } from '@/lib/components/TopNav';
+import { ScrollProgress } from '@/lib/components/ScrollProgress';
 import { useIsNarrow } from '@/lib/useIsNarrow';
 
 const DISPLAY = 'var(--font-display)';
@@ -99,6 +100,7 @@ export default function About() {
 
     return (
         <div style={{ minHeight: '100dvh', background: 'var(--page)', display: 'flex', flexDirection: 'column' }}>
+            <ScrollProgress />
             <div style={{ position: 'sticky', top: 0, zIndex: 1200 }}><TopNav /></div>
 
             {/* ── Header ──────────────────────────────────────────────────────── */}
