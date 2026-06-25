@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useBase, useRecords, AirtableBoundary } from '@/lib/airtable/hooks';
+import { useIsNarrow } from '@/lib/useIsNarrow';
+import { Shell } from '@/lib/components/Shell';
 import {
     CodeIcon,
     XIcon,
@@ -513,45 +515,49 @@ function ProjectTile({ record, table, index, onClick }: { record: any; table: an
 function FeaturedCard({ record, table, onClick }: { record: any; table: any; onClick: () => void }) {
     const { name, link, langs, notes, created, attachCount } = readProject(record, table);
     const desc = notes ? (notes.length > 220 ? notes.slice(0, 220).trimEnd() + '…' : notes) : '';
+    const isNarrow = useIsNarrow();
     return (
         <div onClick={onClick}
-            style={{ display: 'flex', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', marginBottom: '26px', transition: 'border-color 0.16s, box-shadow 0.16s' }}
+            style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', marginBottom: '26px', transition: 'border-color 0.16s, box-shadow 0.16s' }}
             onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = ACCENT; el.style.boxShadow = '0 12px 30px rgba(40,35,20,0.10)'; }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = 'var(--ink-line)'; el.style.boxShadow = 'none'; }}>
 
-            {/* Glyph panel */}
-            <div style={{ width: '150px', flexShrink: 0, borderRight: '1.5px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Glyph name={name} size={64} />
+            {/* Glyph panel — side divider on desktop, top strip on mobile */}
+            <div style={{ width: isNarrow ? '100%' : '150px', flexShrink: 0, padding: isNarrow ? '18px' : 0, borderRight: isNarrow ? 'none' : '1.5px solid var(--ink-line)', borderBottom: isNarrow ? '1.5px solid var(--ink-line)' : 'none', display: 'flex', alignItems: 'center', justifyContent: isNarrow ? 'flex-start' : 'center' }}>
+                <Glyph name={name} size={isNarrow ? 48 : 64} />
             </div>
 
             {/* Body */}
-            <div style={{ flex: 1, minWidth: 0, padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ flex: 1, minWidth: 0, padding: isNarrow ? '18px' : '22px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <span style={{ ...monoLabel, padding: '3px 9px', borderRadius: '5px', background: ACCENT, color: ACCENT_TEXT }}>New</span>
                     {langs.slice(0, 3).map(l => <CatTag key={l} label={l} />)}
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.1 }}>{name || 'Untitled'}</div>
+                <div style={{ fontSize: isNarrow ? '20px' : '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.15 }}>{name || 'Untitled'}</div>
                 {desc && <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden' }}>{desc}</div>}
-                <div style={{ display: 'flex', gap: '26px', marginTop: '4px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: isNarrow ? '14px 24px' : '26px', marginTop: '4px' }}>
                     {[['Files', String(attachCount)], ['Tags', String(langs.length)], ['Link', link ? 'Yes' : '—'], ['Added', created ? formatDate(created) : '—']].map(([label, value]) => (
-                        <div key={label}>
-                            <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>{value}</div>
+                        <div key={label} style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>{value}</div>
                             <div style={{ ...monoLabel, color: 'var(--text-muted)', marginTop: '3px' }}>{label}</div>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Arrow panel */}
-            <div style={{ width: '58px', flexShrink: 0, borderLeft: '1.5px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}>
-                <ArrowUpRightIcon size={20} weight="bold" />
-            </div>
+            {/* Arrow panel — desktop only (whole card is tappable on mobile) */}
+            {!isNarrow && (
+                <div style={{ width: '58px', flexShrink: 0, borderLeft: '1.5px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}>
+                    <ArrowUpRightIcon size={20} weight="bold" />
+                </div>
+            )}
         </div>
     );
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 function DevWorkGrid(): React.ReactElement {
+    const isNarrow = useIsNarrow();
     const base  = useBase();
     const table = base.tables.find(t => t.getFieldIfExists(TITLE_ID) !== null) ?? base.tables[0];
     const records = useRecords(table);
@@ -652,8 +658,8 @@ function DevWorkGrid(): React.ReactElement {
                 ::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 6px; }
             `}</style>
 
-            <div style={{ minHeight: '100vh', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', padding: '28px 24px 40px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-                <div style={{ position: 'relative', maxWidth: '1000px', margin: '0 auto', border: '1.5px solid var(--ink-line)', borderRadius: '20px', padding: 'clamp(20px, 3.5vw, 38px)' }}>
+            <div style={{ minHeight: '100%', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', padding: isNarrow ? '14px 10px 36px' : '28px 24px 40px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+                <div style={{ position: 'relative', maxWidth: '1000px', margin: '0 auto', border: '1.5px solid var(--ink-line)', borderRadius: isNarrow ? '0' : '20px', padding: isNarrow ? '16px 14px 24px' : 'clamp(20px, 3.5vw, 38px)' }}>
 
                     {/* Corner mark + registration brackets */}
                     <div style={{ position: 'absolute', top: '14px', left: '14px', width: '22px', height: '22px', border: '1.5px solid var(--ink-line)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', background: 'var(--page)', zIndex: 1 }}>
@@ -749,10 +755,15 @@ function DevWorkGrid(): React.ReactElement {
 export default function DevWorkPage() {
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
-    if (!mounted) return <div style={{ minHeight: '100vh', background: 'var(--page, #f4f4f5)' }} />;
     return (
-        <AirtableBoundary>
-            <DevWorkGrid />
-        </AirtableBoundary>
+        <Shell>
+            {mounted ? (
+                <AirtableBoundary>
+                    <DevWorkGrid />
+                </AirtableBoundary>
+            ) : (
+                <div style={{ flex: 1, background: 'var(--page)' }} />
+            )}
+        </Shell>
     );
 }

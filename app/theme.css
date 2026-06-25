@@ -8,6 +8,21 @@
  * file) is kept; only the surfaces/grays are re-tinted from warm → neutral.
  */
 
+/* ── Shared brutalist tokens (theme-agnostic) ────────────────────────────── */
+html:root {
+    --accent: #F5C13D;       /* acid yellow */
+    --accent-deep: #E3A81B;
+    --accent-text: #221d08;  /* near-black text on yellow */
+    --font-display: 'Anton', Impact, 'Arial Narrow Bold', sans-serif;
+    --font-ui: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+/* Montserrat as the global default body font. */
+body {
+    margin: 0;
+    font-family: var(--font-body), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 /* ── Light: lighter neutral gray ─────────────────────────────────────────── */
 html:root {
     --page: #f4f4f5;

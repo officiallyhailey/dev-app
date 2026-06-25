@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useBase, useRecords, AirtableBoundary } from '@/lib/airtable/hooks';
+import { Shell } from '@/lib/components/Shell';
 import { BookOpenIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowLeftIcon, ArrowRightIcon, CaretRightIcon, PaperclipIcon, FileIcon, LinkIcon, ListBulletsIcon, PlusIcon } from '@phosphor-icons/react';
 
 const ACCENT      = '#F5C13D'; // amber primary
@@ -1229,7 +1230,7 @@ function CheatSheetsApp(): React.ReactElement {
                 @keyframes cs-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
             `}</style>
 
-            <div style={{ position: 'relative', height: '100vh', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', height: '100%', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <CornerBrackets inset={10} size={12} />
 
                 {/* Top utility bar */}
@@ -1295,12 +1296,15 @@ export default function CheatsheetPage() {
     // Data is fetched client-side via SWR Suspense, so skip SSR for this subtree.
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
-    if (!mounted) {
-        return <div style={{ minHeight: '100vh', background: 'var(--page, #eceae4)' }} />;
-    }
     return (
-        <AirtableBoundary>
-            <CheatSheetsApp />
-        </AirtableBoundary>
+        <Shell>
+            {mounted ? (
+                <AirtableBoundary>
+                    <CheatSheetsApp />
+                </AirtableBoundary>
+            ) : (
+                <div style={{ flex: 1, background: 'var(--page)' }} />
+            )}
+        </Shell>
     );
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useBase, useRecords, AirtableBoundary, FieldType } from '@/lib/airtable/hooks';
+import { Shell } from '@/lib/components/Shell';
 type Field = any;
 type FieldConfig = any;
 import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, CaretRightIcon, HouseIcon, SquaresFourIcon, PlusIcon } from '@phosphor-icons/react';
@@ -489,7 +490,7 @@ function ToolsApp(): React.ReactElement {
                 ::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 6px; }
             `}</style>
 
-            <div style={{ position: 'relative', height: '100vh', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', height: '100%', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <CornerBrackets inset={10} size={12} />
 
                 {/* Top utility bar */}
@@ -607,10 +608,15 @@ function ToolsApp(): React.ReactElement {
 export default function ToolsPage() {
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
-    if (!mounted) return <div style={{ minHeight: '100vh', background: 'var(--page, #f4f4f5)' }} />;
     return (
-        <AirtableBoundary>
-            <ToolsApp />
-        </AirtableBoundary>
+        <Shell>
+            {mounted ? (
+                <AirtableBoundary>
+                    <ToolsApp />
+                </AirtableBoundary>
+            ) : (
+                <div style={{ flex: 1, background: 'var(--page)' }} />
+            )}
+        </Shell>
     );
 }

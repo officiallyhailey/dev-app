@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './theme.css';
+import { anton, montserrat } from './fonts';
 
 export const metadata: Metadata = {
-    title: 'Cheat Sheets',
-    description: 'Airtable interfaces, on the go.',
+    title: 'DevDeck — your resource hub',
+    description: 'Cheat sheets, dev work, events, jobs and tools — on the go.',
     manifest: '/manifest.webmanifest',
     appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
-        title: 'Cheat Sheets',
+        title: 'DevDeck',
     },
     icons: {
         icon: '/icon.svg',
@@ -22,14 +23,14 @@ export const viewport: Viewport = {
     initialScale: 1,
     viewportFit: 'cover',
     themeColor: [
-        { media: '(prefers-color-scheme: light)', color: '#eceae4' },
-        { media: '(prefers-color-scheme: dark)', color: '#15140f' },
+        { media: '(prefers-color-scheme: light)', color: '#f4f4f5' },
+        { media: '(prefers-color-scheme: dark)', color: '#161618' },
     ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en">
+        <html lang="en" className={`${anton.variable} ${montserrat.variable}`}>
             <body>{children}</body>
         </html>
     );

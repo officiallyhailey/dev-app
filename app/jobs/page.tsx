@@ -2,6 +2,7 @@
 
 import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
 import {useBase, useRecords, AirtableBoundary} from '@/lib/airtable/hooks';
+import {Shell} from '@/lib/components/Shell';
 import {Warning, X, CaretDown, CaretUp} from '@phosphor-icons/react';
 // These were SDK model types; the ported UI only uses them as loose annotations.
 type Base = any;
@@ -589,7 +590,7 @@ function MapExtensionApp() {
 
     if (!isConfigured) {
         return (
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', padding: '24px'}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '60vh', background: 'var(--bg)', padding: '24px'}}>
                 <div style={{maxWidth: '480px', textAlign: 'center', background: 'var(--neu-bg)', borderRadius: '24px', padding: '36px', boxShadow: 'var(--neu-raised)'}}>
                     <div style={{width: '52px', height: '52px', borderRadius: '16px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'}}>
                         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke={TEAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -658,7 +659,7 @@ function MapExtensionApp() {
                 @keyframes spin { to { transform: rotate(360deg); } }
             `}</style>
 
-            <div style={{width: '100%', height: '100vh', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: isNarrow ? '12px' : '16px', gap: isNarrow ? '12px' : '16px', overflow: 'hidden'}}>
+            <div style={{width: '100%', height: '100%', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: isNarrow ? '12px' : '16px', gap: isNarrow ? '12px' : '16px', overflow: 'hidden'}}>
 
                 {/* Warning banner */}
                 {shouldShowWarning && (
@@ -736,11 +737,16 @@ function MapExtensionApp() {
 export default function JobsPage() {
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
-    if (!mounted) return <div style={{minHeight: '100vh', background: 'var(--page, #f4f4f5)'}} />;
     return (
-        <AirtableBoundary>
-            <MapExtensionApp />
-        </AirtableBoundary>
+        <Shell>
+            {mounted ? (
+                <AirtableBoundary>
+                    <MapExtensionApp />
+                </AirtableBoundary>
+            ) : (
+                <div style={{flex: 1, background: 'var(--page)'}} />
+            )}
+        </Shell>
     );
 }
 

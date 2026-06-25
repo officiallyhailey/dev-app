@@ -2,6 +2,8 @@
 
 import React, {useState, useEffect, useMemo} from 'react';
 import {useBase, useRecords, AirtableBoundary} from '@/lib/airtable/hooks';
+import {Shell} from '@/lib/components/Shell';
+import {useIsNarrow} from '@/lib/useIsNarrow';
 // These were SDK model types; the ported UI only uses them as loose annotations.
 type AirtableRecord = any;
 type Table = any;
@@ -669,6 +671,7 @@ function PinCard({record, table, onClick, index}: {record: AirtableRecord; table
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 function EventsApp(): React.ReactElement {
+    const isNarrow   = useIsNarrow();
     const base       = useBase();
     // Agenda Fields table (the standalone base has many tables, so pin by id).
     const table      = base.tables.find(t => t.id === 'tbl6xGCwCI4XclP19') ?? base.tables[0];
@@ -845,7 +848,7 @@ function EventsApp(): React.ReactElement {
                 }
             `}</style>
 
-            <div style={{minHeight: '100vh', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', padding: '24px 24px 32px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'}}>
+            <div style={{minHeight: '100%', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', padding: isNarrow ? '14px 10px 32px' : '24px 24px 32px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'}}>
                 <div style={{maxWidth: '1180px', margin: '0 auto'}}>
 
                     {/* Header */}
@@ -980,10 +983,15 @@ function EventsApp(): React.ReactElement {
 export default function EventsPage() {
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
-    if (!mounted) return <div style={{minHeight: '100vh', background: 'var(--page, #f4f4f5)'}} />;
     return (
-        <AirtableBoundary>
-            <EventsApp />
-        </AirtableBoundary>
+        <Shell>
+            {mounted ? (
+                <AirtableBoundary>
+                    <EventsApp />
+                </AirtableBoundary>
+            ) : (
+                <div style={{flex: 1, background: 'var(--page)'}} />
+            )}
+        </Shell>
     );
 }
