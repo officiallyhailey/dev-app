@@ -1249,7 +1249,7 @@ function CheatSheetsApp(): React.ReactElement {
                             return (
                                 <button key={m} onClick={() => { setMode(m); setSelectedRecord(null); }}
                                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '5px', cursor: 'pointer', fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', border: '1.5px solid var(--ink-line)', background: active ? INK : 'var(--surface)', color: active ? '#fff' : 'var(--text-muted)' }}>
-                                    {m === 'new' && <PlusIcon size={13} weight="bold" />}{m === 'home' ? 'Home' : 'New'}
+                                    {m === 'new' && <PlusIcon size={13} weight="bold" />}{m === 'home' ? 'Search' : 'New'}
                                 </button>
                             );
                         })}
