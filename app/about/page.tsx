@@ -50,7 +50,7 @@ const DESIGN_SKILLS = ['Design tokens', 'Brutalist design system', 'Typography &
 const MODULES: { name: string; what: string; ex: string }[] = [
     { name: 'Cheat Sheets', what: 'Searchable reference library', ex: 'Read · create · live AI fields' },
     { name: 'Dev Work', what: 'Snippets, links & files', ex: 'Edit · attachment uploads' },
-    { name: 'Events', what: 'Agenda & deadlines timeline', ex: 'Full create / update / delete' },
+    { name: 'Agenda', what: 'Agenda & deadlines timeline', ex: 'Full create / update / delete' },
     { name: 'Jobs', what: 'Opportunities on a map', ex: 'Mapbox · geocoding · edit' },
     { name: 'Tools', what: 'Categorised resource directory', ex: 'Read · grouping by field' },
 ];

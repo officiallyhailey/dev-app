@@ -401,8 +401,35 @@ function ViewToggle({ viewMode, onChange }: { viewMode: 'link' | 'attachment'; o
 }
 
 // ── Detail view ───────────────────────────────────────────────────────────────
-function CheatSheetDetail({ record, table, onClose }: { record: any; table: any; onClose: () => void }) {
+function CheatSheetDetail({ record, table, onClose, query = '' }: { record: any; table: any; onClose: () => void; query?: string }) {
     const isNarrow = useIsNarrow();
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // When opened from a search result, jump to the first place the search term
+    // appears in the detail and flash it, so the user doesn't have to hunt for it.
+    useEffect(() => {
+        const q = query.trim().toLowerCase();
+        if (!q) return;
+        const timer = setTimeout(() => {
+            const root = contentRef.current;
+            if (!root) return;
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            let node: Node | null;
+            while ((node = walker.nextNode())) {
+                if (node.textContent && node.textContent.toLowerCase().includes(q)) {
+                    const el = node.parentElement;
+                    if (!el) continue;
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const prev = el.style.backgroundColor;
+                    el.style.transition = 'background-color 0.3s';
+                    el.style.backgroundColor = 'var(--accent-soft)';
+                    setTimeout(() => { el.style.backgroundColor = prev; }, 1800);
+                    break;
+                }
+            }
+        }, 420); // let the modal mount / slide settle first
+        return () => clearTimeout(timer);
+    }, [query, record.id]);
     const [viewMode, setViewMode] = useState<'link' | 'attachment'>('link');
 
     const langField     = table.getFieldIfExists(LINK_LANGUAGE_ID);
@@ -620,7 +647,7 @@ function CheatSheetDetail({ record, table, onClose }: { record: any; table: any;
 
     return (
         <div onClick={onClose} style={{ ...modalOverlayStyle(isNarrow), background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)' }}>
-            <div onClick={e => e.stopPropagation()}
+            <div ref={contentRef} onClick={e => e.stopPropagation()}
                 style={{ ...modalCardStyle(isNarrow), ...(!isNarrow && showToggle ? { height: '88vh', maxHeight: '88vh' } : {}), borderRadius: isNarrow ? 0 : '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)' }}>
                 <CornerBrackets inset={10} size={12} />
 
@@ -703,6 +730,27 @@ function LanguageTile({ label, count, onClick }: { label: string; count: number;
     );
 }
 
+// Strip markdown syntax to plain prose, so search snippets read as final text
+// (not raw "**bold**", "# heading", "[label](url)" etc.).
+function stripMarkdown(src: string): string {
+    return (src ?? '')
+        .replace(/```[\s\S]*?```/g, ' ')           // fenced code blocks
+        .replace(/`([^`]+)`/g, '$1')                // inline code
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')      // images
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')     // links → label
+        .replace(/^\s{0,3}#{1,6}\s+/gm, '')          // headings
+        .replace(/^\s{0,3}>\s?/gm, '')               // blockquotes
+        .replace(/^\s*(?:[-*+]|\d+\.)\s+/gm, '')     // list markers
+        .replace(/^\s*([-*_])\1{2,}\s*$/gm, ' ')     // horizontal rules
+        .replace(/(\*\*\*|___)(.+?)\1/g, '$2')       // bold italic
+        .replace(/(\*\*|__)(.+?)\1/g, '$2')          // bold
+        .replace(/(\*|_)(.+?)\1/g, '$2')             // italic
+        .replace(/~~(.+?)~~/g, '$1')                 // strikethrough
+        .replace(/\s*\n\s*/g, ' ')                    // flatten to one line
+        .replace(/[ \t]{2,}/g, ' ')                   // collapse spaces
+        .trim();
+}
+
 // ── Search: snippet highlighting ────────────────────────────────────────────
 // Build context snippets around every occurrence of `query` in `text`.
 function buildSnippets(text: string, query: string, windowSize = 70, max = 8): { nodes: React.ReactNode[]; count: number } {
@@ -754,9 +802,9 @@ function HomeView({ records, table, query, setQuery, recentRecords, allLangs, la
         const out: { record: any; groups: { label: string; nodes: React.ReactNode[]; count: number }[]; total: number }[] = [];
         records.forEach(r => {
             const sources: { label: string; text: string }[] = [
-                { label: 'Link Summary',       text: linkSummF ? r.getCellValueAsString(linkSummF) : '' },
-                { label: 'Attachment Summary', text: attSummF  ? r.getCellValueAsString(attSummF)  : '' },
-                { label: 'Notes',              text: notesF    ? r.getCellValueAsString(notesF)    : '' },
+                { label: 'Link Summary',       text: stripMarkdown(linkSummF ? r.getCellValueAsString(linkSummF) : '') },
+                { label: 'Attachment Summary', text: stripMarkdown(attSummF  ? r.getCellValueAsString(attSummF)  : '') },
+                { label: 'Notes',              text: stripMarkdown(notesF    ? r.getCellValueAsString(notesF)    : '') },
             ];
             const groups: { label: string; nodes: React.ReactNode[]; count: number }[] = [];
             let total = 0;
@@ -1249,9 +1297,8 @@ function CheatSheetsApp(): React.ReactElement {
                         <span style={{ ...monoLabel, fontSize: '11px', color: 'var(--text-primary)' }}>Cheat_Sheets / Search</span>
                     </div>
 
-                    {/* Help + Home / New toggle (square) */}
+                    {/* Home / New toggle + Help (far right) */}
                     <div style={{ display: 'flex', gap: '8px' }}>
-                        <HelpButton page="cheatsheet" />
                         {(['home', 'new'] as const).map(m => {
                             const active = mode === m;
                             return (
@@ -1261,6 +1308,7 @@ function CheatSheetsApp(): React.ReactElement {
                                 </button>
                             );
                         })}
+                        <HelpButton page="cheatsheet" />
                     </div>
                 </div>
 
@@ -1293,7 +1341,7 @@ function CheatSheetsApp(): React.ReactElement {
 
             {/* Detail popout */}
             {selectedRecord && (
-                <CheatSheetDetail record={selectedRecord} table={table} onClose={() => setSelectedRecord(null)} />
+                <CheatSheetDetail record={selectedRecord} table={table} query={search} onClose={() => setSelectedRecord(null)} />
             )}
 
         </>

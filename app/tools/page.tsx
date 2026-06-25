@@ -361,6 +361,123 @@ function HomeView({ visibleRecords, recentRecords, allCategories, categoryMap, n
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
+// ── New tool form (add a link → AI fills name / org / summary) ────────────────
+function NewToolForm({ table, records, onClose }: { table: any; records: readonly any[]; onClose: () => void }) {
+    const isNarrow      = useIsNarrow();
+    const linkField     = table.getFieldIfExists('fldyUeKzyDa9y84tL'); // Link (url)
+    const typeField     = table.getFieldIfExists('fldf3PH45tTs8VcdG'); // Type (singleSelect)
+    const categoryField = table.getFieldIfExists('fldCJurO2mwjpzbLB'); // Category (singleSelect)
+    const nameField     = table.getFieldIfExists('fldCbE7GVcOcLssGE'); // Name (formula)
+    const orgField      = table.getFieldIfExists('fld6jCbGrXbezIZ3z'); // Organization (aiText)
+    const summaryField  = table.getFieldIfExists('fldbq0qCJ1p4wqfPj'); // Summary (aiText)
+    const typeChoices: string[] = ((typeField?.config as any)?.options?.choices ?? []).map((c: any) => c.name);
+    const catChoices: string[]  = ((categoryField?.config as any)?.options?.choices ?? []).map((c: any) => c.name);
+
+    const [link, setLink]         = useState('');
+    const [type, setType]         = useState('');
+    const [category, setCategory] = useState('');
+    const [newId, setNewId]       = useState<string | null>(null);
+    const [creating, setCreating] = useState(false);
+    const [error, setError]       = useState('');
+
+    // Once created, the record reactively fills in as AI populates it (useRecords polls).
+    const rec      = newId ? records.find(r => r.id === newId) ?? null : null;
+    const liveName = rec && nameField    ? rec.getCellValueAsString(nameField)    : '';
+    const liveOrg  = rec && orgField     ? rec.getCellValueAsString(orgField)     : '';
+    const liveSumm = rec && summaryField ? rec.getCellValueAsString(summaryField) : '';
+
+    useEffect(() => {
+        const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', h);
+        return () => window.removeEventListener('keydown', h);
+    }, [onClose]);
+
+    async function handleCreate() {
+        if (!link.trim()) { setError('Add a link first.'); return; }
+        setCreating(true); setError('');
+        const fields: Record<string, any> = {};
+        if (linkField)              fields[linkField.id]     = link.trim();
+        if (typeField && type)      fields[typeField.id]     = type;
+        if (categoryField && category) fields[categoryField.id] = category;
+        try {
+            const id = await table.createRecordAsync(fields);
+            setNewId(id);
+        } catch (e: any) {
+            setError(e?.message ?? 'Could not add the tool.');
+        }
+        setCreating(false);
+    }
+    const reset = () => { setLink(''); setType(''); setCategory(''); setNewId(null); setError(''); };
+
+    const inputStyle: React.CSSProperties = { width: '100%', padding: '12px 14px', fontSize: '14px', color: 'var(--text-primary)', background: 'var(--surface)', border: '2px solid var(--text-primary)', borderRadius: 0, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
+    const labelStyle: React.CSSProperties = { ...monoLabel, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' };
+    const selectStyle: React.CSSProperties = { ...inputStyle, appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer' };
+
+    return (
+        <div onClick={onClose} style={{ ...modalOverlayStyle(isNarrow), background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)' }}>
+            <div onClick={e => e.stopPropagation()} style={{ ...modalCardStyle(isNarrow), borderRadius: isNarrow ? 0 : '8px', background: 'var(--surface)', border: '2px solid var(--text-primary)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 18px', borderBottom: '2px solid var(--text-primary)', flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '20px', textTransform: 'uppercase', color: 'var(--text-primary)' }}>New Tool</span>
+                    <div onClick={onClose} style={{ width: '30px', height: '30px', border: '2px solid var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)' }}><XIcon size={15} weight="bold" /></div>
+                </div>
+
+                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: isNarrow ? '18px 16px 24px' : '24px' }}>
+                    <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                        <div>
+                            <label style={labelStyle}>Link *</label>
+                            <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={{ ...inputStyle, opacity: newId ? 0.6 : 1 }} disabled={!!newId} autoFocus />
+                        </div>
+
+                        {!newId && catChoices.length > 0 && (
+                            <div>
+                                <label style={labelStyle}>Category</label>
+                                <select value={category} onChange={e => setCategory(e.target.value)} style={selectStyle}>
+                                    <option value="">Choose a category…</option>
+                                    {catChoices.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                        )}
+                        {!newId && typeChoices.length > 0 && (
+                            <div>
+                                <label style={labelStyle}>Type</label>
+                                <select value={type} onChange={e => setType(e.target.value)} style={selectStyle}>
+                                    <option value="">Choose a type…</option>
+                                    {typeChoices.map(t => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Live AI preview after creation */}
+                        {rec && (
+                            <>
+                                <LiveField label="Name" value={liveName} />
+                                <LiveField label="Organization" value={liveOrg} />
+                                <LiveField label="Summary" value={liveSumm} />
+                            </>
+                        )}
+
+                        {error && <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: 600 }}>{error}</div>}
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', padding: '14px 18px', borderTop: '2px solid var(--text-primary)', flexShrink: 0 }}>
+                    {!newId ? (
+                        <>
+                            <div onClick={onClose} style={{ padding: '10px 18px', border: '2px solid var(--text-primary)', background: 'var(--surface)', color: 'var(--text-muted)', ...monoLabel, cursor: 'pointer', userSelect: 'none' }}>Cancel</div>
+                            <div onClick={() => { if (!creating) handleCreate(); }} style={{ padding: '10px 22px', border: '2px solid var(--text-primary)', background: ACCENT, color: ACCENT_TEXT, ...monoLabel, cursor: creating ? 'wait' : 'pointer', userSelect: 'none', opacity: creating ? 0.7 : 1 }}>{creating ? 'Adding…' : 'Add tool'}</div>
+                        </>
+                    ) : (
+                        <>
+                            <div onClick={reset} style={{ padding: '10px 18px', border: '2px solid var(--text-primary)', background: 'var(--surface)', color: 'var(--text-primary)', ...monoLabel, cursor: 'pointer', userSelect: 'none' }}>Add another</div>
+                            <div onClick={onClose} style={{ padding: '10px 22px', border: '2px solid var(--text-primary)', background: ACCENT, color: ACCENT_TEXT, ...monoLabel, cursor: 'pointer', userSelect: 'none' }}>Done</div>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function ToolsApp(): React.ReactElement {
     const isNarrow = useIsNarrow();
     const base    = useBase();
@@ -389,6 +506,7 @@ function ToolsApp(): React.ReactElement {
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
     const [search,         setSearch]         = useState('');
     const [selectedRecord, setSelectedRecord] = useState<any>(null);
+    const [showNew,        setShowNew]        = useState(false);
 
     const visibleRecords = records.filter(r => {
         if (!statusField) return true;
@@ -516,6 +634,11 @@ function ToolsApp(): React.ReactElement {
                                 <span style={{ fontSize: '11px', fontWeight: 700 }}>{item.label}</span>
                             </div>
                         ))}
+                        <div onClick={() => setShowNew(true)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}`, fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', userSelect: 'none' }}>
+                            <PlusIcon size={13} weight="bold" /> New
+                        </div>
+                        <HelpButton page="tools" />
                     </div>
 
                     {/* Search (square) */}
@@ -600,6 +723,9 @@ function ToolsApp(): React.ReactElement {
                     createdField={createdField}
                     onClose={() => setSelectedRecord(null)}
                 />
+            )}
+            {showNew && (
+                <NewToolForm table={table} records={records} onClose={() => setShowNew(false)} />
             )}
         </>
     );

@@ -713,9 +713,7 @@ function DevWorkGrid(): React.ReactElement {
         return p.name.toLowerCase().includes(q) || p.langs.join(' ').toLowerCase().includes(q) || p.notes.toLowerCase().includes(q);
     });
 
-    const showFeatured = filter === 'all' && !q && filtered.length > 0;
-    const featured  = showFeatured ? filtered[0] : null;
-    const gridItems = showFeatured ? filtered.slice(1) : filtered;
+    const gridItems = filtered;
 
     const tabStyle = (active: boolean): React.CSSProperties => ({
         ...monoLabel, padding: '8px 14px', borderRadius: '7px', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap',
@@ -778,21 +776,30 @@ function DevWorkGrid(): React.ReactElement {
             <div style={{ minHeight: '100%', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', padding: isNarrow ? '14px 10px 36px' : '28px 24px 40px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
                 <div style={{ position: 'relative', maxWidth: '1000px', margin: '0 auto', border: '1.5px solid var(--ink-line)', borderRadius: isNarrow ? '0' : '20px', padding: isNarrow ? '16px 14px 24px' : 'clamp(20px, 3.5vw, 38px)' }}>
 
-                    {/* Corner mark + registration brackets */}
-                    <div style={{ position: 'absolute', top: '14px', left: '14px', width: '22px', height: '22px', border: '1.5px solid var(--ink-line)', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', background: 'var(--page)', zIndex: 1 }}>
-                        <XIcon size={11} weight="bold" />
-                    </div>
+                    {/* Registration brackets */}
                     <CornerBrackets inset={11} size={12} />
 
-                    {/* Topbar */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingLeft: '30px', marginBottom: '20px' }}>
+                    {/* Topbar — label + controls (search / new / help, far right) */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', marginBottom: '22px' }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '9px' }}>
                             <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <CodeIcon size={13} weight="bold" color={ACCENT_TEXT} />
                             </div>
                             <span style={{ ...monoLabel, fontSize: '11px', color: 'var(--text-primary)' }}>DEV&nbsp;WORK&nbsp;/&nbsp;LABS</span>
                         </div>
-                        <span style={{ ...monoLabel, color: 'var(--text-muted)' }}>Portfolio</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '9px 14px', borderRadius: '8px', border: '1.5px solid var(--ink-line)', background: 'var(--surface)', width: isNarrow ? '150px' : '220px' }}>
+                                <MagnifyingGlassIcon size={15} color="var(--text-muted)" weight="bold" />
+                                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search"
+                                    style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'inherit' }} />
+                                {search && <XIcon size={12} weight="bold" color="var(--text-muted)" style={{ cursor: 'pointer', flexShrink: 0 }} onClick={() => setSearch('')} />}
+                            </div>
+                            <div onClick={() => setShowNew(true)}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}`, ...monoLabel, fontSize: '11px', userSelect: 'none' }}>
+                                <PlusIcon size={14} weight="bold" /> New
+                            </div>
+                            <HelpButton page="devwork" />
+                        </div>
                     </div>
 
                     {/* Headline */}
@@ -822,28 +829,12 @@ function DevWorkGrid(): React.ReactElement {
                         </div>
                     </div>
 
-                    {/* Featured */}
-                    {featured && <FeaturedCard record={featured} table={table} onClick={() => setSelected(featured)} />}
-
-                    {/* Filter tabs + search */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '20px' }}>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', flex: 1 }}>
-                            <span onClick={() => setFilter('all')} style={tabStyle(filter === 'all')}>All</span>
-                            {allLangs.map(l => (
-                                <span key={l} onClick={() => setFilter(l)} style={tabStyle(filter === l)}>{l}</span>
-                            ))}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '9px 14px', borderRadius: '8px', border: '1.5px solid var(--ink-line)', background: 'var(--surface)', width: 'min(240px, 100%)' }}>
-                            <MagnifyingGlassIcon size={15} color="var(--text-muted)" weight="bold" />
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search"
-                                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'inherit' }} />
-                            {search && <XIcon size={12} weight="bold" color="var(--text-muted)" style={{ cursor: 'pointer' }} onClick={() => setSearch('')} />}
-                        </div>
-                        <HelpButton page="devwork" />
-                        <div onClick={() => setShowNew(true)}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}`, ...monoLabel, fontSize: '11px', userSelect: 'none' }}>
-                            <PlusIcon size={14} weight="bold" /> New
-                        </div>
+                    {/* Filter tabs */}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                        <span onClick={() => setFilter('all')} style={tabStyle(filter === 'all')}>All</span>
+                        {allLangs.map(l => (
+                            <span key={l} onClick={() => setFilter(l)} style={tabStyle(filter === l)}>{l}</span>
+                        ))}
                     </div>
 
                     {/* Grid */}

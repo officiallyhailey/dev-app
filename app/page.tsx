@@ -12,7 +12,7 @@ const DISPLAY = 'var(--font-display)';
 const SECTIONS = [
     { href: '/cheatsheet', label: 'Cheat Sheets', desc: 'AI generated summaries, notes & language references.', Icon: BookOpenIcon, n: '01' },
     { href: '/devwork', label: 'Dev Work', desc: 'Snippets, links and attachments from your projects.', Icon: CodeIcon, n: '02' },
-    { href: '/events', label: 'Events', desc: 'Agendas, deadlines and conferences on a timeline.', Icon: CalendarBlankIcon, n: '03' },
+    { href: '/events', label: 'Agenda', desc: 'Agendas, deadlines and conferences on a timeline.', Icon: CalendarBlankIcon, n: '03' },
     { href: '/jobs', label: 'Jobs', desc: 'Opportunities plotted on an interactive map.', Icon: BriefcaseIcon, n: '04' },
     { href: '/tools', label: 'Tools', desc: 'Platforms and resources, organised by category.', Icon: WrenchIcon, n: '05' },
 ];
@@ -104,7 +104,7 @@ function HeroComputer({ isNarrow }: { isNarrow: boolean }) {
 
 export default function Landing() {
     const isNarrow = useIsNarrow();
-    const marqueeItems = ['Cheat Sheets', 'Dev Work', 'Events', 'Jobs', 'Tools'];
+    const marqueeItems = ['Cheat Sheets', 'Dev Work', 'Agenda', 'Jobs', 'Tools'];
     const scrollToSections = () => document.getElementById('sections')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     return (

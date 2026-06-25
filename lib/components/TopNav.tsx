@@ -9,12 +9,11 @@ import { useIsNarrow } from '@/lib/useIsNarrow';
 export const NAV_HEIGHT = 56;
 
 const LINKS = [
-    { href: '/', label: 'Home' },
-    { href: '/cheatsheet', label: 'Cheat Sheets' },
-    { href: '/devwork', label: 'Dev Work' },
-    { href: '/events', label: 'Events' },
+    { href: '/events', label: 'Agenda' },
     { href: '/jobs', label: 'Jobs' },
+    { href: '/devwork', label: 'Dev Work' },
     { href: '/tools', label: 'Tools' },
+    { href: '/cheatsheet', label: 'Cheat Sheets' },
     { href: '/about', label: 'About' },
 ];
 

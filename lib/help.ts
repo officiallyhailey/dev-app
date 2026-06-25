@@ -29,7 +29,7 @@ export const HELP: Record<HelpPage, HelpContent> = {
         ],
     },
     events: {
-        title: 'Events',
+        title: 'Agenda',
         sections: [
             { heading: 'What this page is for', body: 'A functional tracker for Events, Tasks and Reminders.' },
             { heading: 'How AI helps', body: 'For events, paste a link and AI fills in the title, organization, summary and date.' },

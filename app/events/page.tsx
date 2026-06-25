@@ -888,9 +888,6 @@ function EventsApp(): React.ReactElement {
                                 )}
                             </div>
 
-                            {/* Help */}
-                            <HelpButton page="events" />
-
                             {/* Add */}
                             <div onClick={openCreate}
                                 style={{display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', borderRadius: '5px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `1.5px solid ${INK}`, fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', userSelect: 'none', transition: 'background 0.12s'}}
@@ -898,6 +895,7 @@ function EventsApp(): React.ReactElement {
                                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = ACCENT}>
                                 <Plus size={15} weight="bold" /> Add
                             </div>
+                            <HelpButton page="events" />
                         </div>
                     </div>
 

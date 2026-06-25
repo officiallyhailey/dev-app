@@ -5,7 +5,9 @@ import {useBase, useRecords, AirtableBoundary} from '@/lib/airtable/hooks';
 import {useIsNarrow} from '@/lib/useIsNarrow';
 import {modalOverlayStyle, modalCardStyle} from '@/lib/components/modalStyle';
 import {Shell} from '@/lib/components/Shell';
-import {Warning, X} from '@phosphor-icons/react';
+import {HelpButton} from '@/lib/components/InfoModal';
+import {LiveField} from '@/lib/components/LiveField';
+import {Warning, X, Plus} from '@phosphor-icons/react';
 // These were SDK model types; the ported UI only uses them as loose annotations.
 type Field = any;
 type Table = any;
@@ -344,6 +346,93 @@ function JobCard({record, table, onClick, isActive, isPinned}: {record: Airtable
     );
 }
 
+// ── New job form (add a link → AI fills role / org / summary / location) ──────
+function NewJobForm({table, records, onClose}: {table: any; records: readonly AirtableRecord[]; onClose: () => void}) {
+    const isNarrow      = useIsNarrow();
+    const linkField     = table.getFieldIfExists('fld4Bb1qoErrpVdXq'); // Link (url)
+    const roleField     = table.getFieldIfExists('fldDbwjKDzYQNVUY9'); // Display Role (formula)
+    const orgField      = table.getFieldIfExists('fldC0zsxhYswqv8xe'); // Organization (aiText)
+    const summaryField  = table.getFieldIfExists('fldH7XHtz2GmndojY'); // Summary (aiText)
+    const locationField = table.getFieldIfExists('fldLHsZ51pavW8Ar0'); // Map Location (formula)
+
+    const [link, setLink]         = useState('');
+    const [newId, setNewId]       = useState<string | null>(null);
+    const [creating, setCreating] = useState(false);
+    const [error, setError]       = useState('');
+
+    const rec      = newId ? records.find(r => r.id === newId) ?? null : null;
+    const liveRole = rec && roleField     ? rec.getCellValueAsString(roleField)     : '';
+    const liveOrg  = rec && orgField      ? rec.getCellValueAsString(orgField)      : '';
+    const liveSumm = rec && summaryField  ? rec.getCellValueAsString(summaryField)  : '';
+    const liveLoc  = rec && locationField ? rec.getCellValueAsString(locationField) : '';
+
+    useEffect(() => {
+        const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', h);
+        return () => window.removeEventListener('keydown', h);
+    }, [onClose]);
+
+    async function handleCreate() {
+        if (!link.trim()) { setError('Add a link first.'); return; }
+        setCreating(true); setError('');
+        try {
+            const id = await table.createRecordAsync(linkField ? {[linkField.id]: link.trim()} : {});
+            setNewId(id);
+        } catch (e: any) {
+            setError(e?.message ?? 'Could not add the job.');
+        }
+        setCreating(false);
+    }
+    const reset = () => { setLink(''); setNewId(null); setError(''); };
+
+    const inputStyle: React.CSSProperties = {width: '100%', padding: '12px 14px', fontSize: '14px', color: 'var(--text-primary)', background: 'var(--surface)', border: '2px solid var(--text-primary)', borderRadius: 0, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box'};
+    const labelStyle: React.CSSProperties = {fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block', marginBottom: '8px'};
+    const btn: React.CSSProperties = {padding: '10px 22px', border: '2px solid var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', userSelect: 'none', cursor: 'pointer'};
+
+    return (
+        <div onClick={onClose} style={{...modalOverlayStyle(isNarrow), zIndex: 9999, background: 'rgba(210,218,230,0.6)', backdropFilter: 'blur(6px)'}}>
+            <div onClick={e => e.stopPropagation()} style={{...modalCardStyle(isNarrow), background: 'var(--neu-bg)', border: '2px solid var(--text-primary)', boxShadow: 'var(--neu-modal)'}}>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 18px', borderBottom: '2px solid var(--text-primary)', flexShrink: 0}}>
+                    <span style={{fontFamily: 'var(--font-display)', fontSize: '20px', textTransform: 'uppercase', color: 'var(--text-primary)'}}>New Job</span>
+                    <div onClick={onClose} style={{width: '30px', height: '30px', border: '2px solid var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)'}}><X size={15} weight="bold" /></div>
+                </div>
+
+                <div style={{flex: 1, minHeight: 0, overflowY: 'auto', padding: isNarrow ? '18px 16px 24px' : '24px'}}>
+                    <div style={{maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '18px'}}>
+                        <div>
+                            <label style={labelStyle}>Job link *</label>
+                            <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://… (job posting URL)" style={{...inputStyle, opacity: newId ? 0.6 : 1}} disabled={!!newId} autoFocus />
+                        </div>
+                        {rec && (
+                            <>
+                                <LiveField label="Role" value={liveRole} />
+                                <LiveField label="Organization" value={liveOrg} />
+                                <LiveField label="Location" value={liveLoc} />
+                                <LiveField label="Summary" value={liveSumm} />
+                            </>
+                        )}
+                        {error && <div style={{fontSize: '12px', color: '#dc2626', fontWeight: 600}}>{error}</div>}
+                    </div>
+                </div>
+
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', padding: '14px 18px', borderTop: '2px solid var(--text-primary)', flexShrink: 0}}>
+                    {!newId ? (
+                        <>
+                            <div onClick={onClose} style={{...btn, background: 'var(--surface)', color: 'var(--text-muted)'}}>Cancel</div>
+                            <div onClick={() => { if (!creating) handleCreate(); }} style={{...btn, background: ACCENT, color: ACCENT_TEXT, cursor: creating ? 'wait' : 'pointer', opacity: creating ? 0.7 : 1}}>{creating ? 'Adding…' : 'Add job'}</div>
+                        </>
+                    ) : (
+                        <>
+                            <div onClick={reset} style={{...btn, background: 'var(--surface)', color: 'var(--text-primary)'}}>Add another</div>
+                            <div onClick={onClose} style={{...btn, background: ACCENT, color: ACCENT_TEXT}}>Done</div>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── Jobs panel (right side) ───────────────────────────────────────────────────
 function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
     records: readonly AirtableRecord[]; table: Table;
@@ -351,6 +440,7 @@ function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
 }) {
     const [search, setSearch]                 = useState('');
     const [selectedRecord, setSelectedRecord] = useState<AirtableRecord | null>(null);
+    const [showNew, setShowNew]               = useState(false);
     const listTopRef = useRef<HTMLDivElement | null>(null);
 
     // Scroll to top of list whenever a pin is selected
@@ -404,6 +494,13 @@ function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
                     <div>
                         <h2 style={{margin: 0, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '19px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', textTransform: 'uppercase'}}>JOB<span style={{color: ACCENT_DEEP}}>_</span>BOARD</h2>
                         <p style={{margin: '3px 0 0', fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500}}>{visibleRecords.length} opportunities</p>
+                    </div>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0}}>
+                        <div onClick={() => setShowNew(true)}
+                            style={{display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: '2px solid var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', userSelect: 'none'}}>
+                            <Plus size={13} weight="bold" /> New
+                        </div>
+                        <HelpButton page="jobs" />
                     </div>
                     {/* Active pin indicator */}
                     {pinnedRecordId && (
@@ -470,6 +567,9 @@ function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
 
             {selectedRecord && (
                 <JobModal record={selectedRecord} table={table} onClose={() => setSelectedRecord(null)} />
+            )}
+            {showNew && (
+                <NewJobForm table={table} records={records} onClose={() => setShowNew(false)} />
             )}
         </div>
     );
