@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useBase, useRecords, AirtableBoundary } from '@/lib/airtable/hooks';
 import { Shell } from '@/lib/components/Shell';
+import { useIsNarrow } from '@/lib/useIsNarrow';
 import { BookOpenIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowLeftIcon, ArrowRightIcon, CaretRightIcon, PaperclipIcon, FileIcon, LinkIcon, ListBulletsIcon, PlusIcon } from '@phosphor-icons/react';
 
 const ACCENT      = '#F5C13D'; // amber primary
@@ -399,6 +400,7 @@ function ViewToggle({ viewMode, onChange }: { viewMode: 'link' | 'attachment'; o
 
 // ── Detail view ───────────────────────────────────────────────────────────────
 function CheatSheetDetail({ record, table, onClose }: { record: any; table: any; onClose: () => void }) {
+    const isNarrow = useIsNarrow();
     const [viewMode, setViewMode] = useState<'link' | 'attachment'>('link');
 
     const langField     = table.getFieldIfExists(LINK_LANGUAGE_ID);
@@ -615,7 +617,7 @@ function CheatSheetDetail({ record, table, onClose }: { record: any; table: any;
     }, [onClose]);
 
     return (
-        <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div onClick={onClose} style={{ position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
             <div onClick={e => e.stopPropagation()}
                 style={{ position: 'relative', width: 'min(1040px, 94vw)', ...(showToggle ? { height: '88vh' } : { maxHeight: '88vh' }), display: 'flex', flexDirection: 'column', borderRadius: '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)', overflow: 'hidden' }}>
                 <CornerBrackets inset={10} size={12} />
@@ -637,7 +639,7 @@ function CheatSheetDetail({ record, table, onClose }: { record: any; table: any;
                 {!showToggle ? (
                     // The scroll container IS the flex child — no height:100% dependency,
                     // so it scrolls reliably even when the modal is sized by maxHeight.
-                    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '20px 28px 32px' }}>
+                    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: isNarrow ? '16px 12px 28px' : '20px 28px 32px' }}>
                         {hasLink ? linkPanel : attachmentPanel}
                     </div>
                 ) : (
@@ -650,10 +652,10 @@ function CheatSheetDetail({ record, table, onClose }: { record: any; table: any;
                             transition: 'transform 0.42s cubic-bezier(0.4, 0, 0.2, 1)',
                             willChange: 'transform',
                         }}>
-                            <div style={{ width: '50%', height: '100%', overflowY: 'auto', padding: '20px 28px 32px' }}>
+                            <div style={{ width: '50%', height: '100%', overflowY: 'auto', padding: isNarrow ? '16px 12px 28px' : '20px 28px 32px' }}>
                                 {linkPanel}
                             </div>
-                            <div style={{ width: '50%', height: '100%', overflowY: 'auto', padding: '20px 28px 32px' }}>
+                            <div style={{ width: '50%', height: '100%', overflowY: 'auto', padding: isNarrow ? '16px 12px 28px' : '20px 28px 32px' }}>
                                 {attachmentPanel}
                             </div>
                         </div>
@@ -738,6 +740,7 @@ function HomeView({ records, table, query, setQuery, recentRecords, allLangs, la
     browseRecords: any[] | null; browseTitle: string | null;
     onOpen: (r: any) => void; onSelectLang: (l: string) => void; onViewAll: () => void; onClearBrowse: () => void; onAddNew: () => void;
 }) {
+    const isNarrow = useIsNarrow();
     const q = query.trim();
     const linkSummF = table.getFieldIfExists(LINK_SUMMARY_ID);
     const attSummF  = table.getFieldIfExists(ATT_SUMMARY_ID);
@@ -770,7 +773,7 @@ function HomeView({ records, table, query, setQuery, recentRecords, allLangs, la
     const showHome   = !q && !browseRecords;         // default: recent + browse-by-language
 
     return (
-        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 28px 48px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: isNarrow ? '8px 12px 48px' : '8px 28px 48px' }}>
             {/* Centered search hero */}
             <div style={{ width: '100%', maxWidth: '720px', marginTop: '6vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px 8px' }}>
@@ -931,6 +934,7 @@ function LiveField({ label, value }: { label: string; value: string }) {
 }
 
 function NewView({ table, records }: { table: any; records: readonly any[] }) {
+    const isNarrow = useIsNarrow();
     const linkField      = table.getFieldIfExists(LINK_ID);
     const attachField    = table.getFieldIfExists(ATTACHMENT_ID);
     const notesField     = table.getFieldIfExists(NOTES_ID);
@@ -1017,7 +1021,7 @@ function NewView({ table, records }: { table: any; records: readonly any[] }) {
     const langOptions = langChoices.length ? langChoices : autoLangs;
 
     return (
-        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', justifyContent: 'center', padding: '8px 28px 40px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', justifyContent: 'center', padding: isNarrow ? '8px 12px 40px' : '8px 28px 40px' }}>
             <div style={{ width: '100%', maxWidth: '680px', display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1.5px solid var(--ink-line)' }}>
                     <div style={{ fontFamily: MONO, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em', textTransform: 'uppercase' }}>New<span style={{ color: ACCENT_DEEP }}>_</span>note</div>
@@ -1129,6 +1133,7 @@ function NewView({ table, records }: { table: any; records: readonly any[] }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 function CheatSheetsApp(): React.ReactElement {
+    const isNarrow = useIsNarrow();
     const base  = useBase();
     const table = base.tables.find(t => t.getFieldIfExists(LINK_SUMMARY_ID) !== null) ?? base.tables[0];
     const records = useRecords(table);
@@ -1234,7 +1239,7 @@ function CheatSheetsApp(): React.ReactElement {
                 <CornerBrackets inset={10} size={12} />
 
                 {/* Top utility bar */}
-                <div style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
+                <div style={{ padding: isNarrow ? '10px 12px' : '12px 28px', display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
                     <div onClick={() => { setMode('home'); setView('home'); setActiveLang(null); setSearch(''); }} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, cursor: 'pointer' }}>
                         <div style={{ width: '24px', height: '24px', borderRadius: '5px', background: ACCENT, border: `1.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <BookOpenIcon size={13} weight="bold" color={ACCENT_TEXT} />

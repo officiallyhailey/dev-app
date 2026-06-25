@@ -198,7 +198,7 @@ function JobModal({record, table, onClose}: {record: AirtableRecord; table: Tabl
     const currentColor = statusColor[updateVal] ?? ACCENT_DEEP;
 
     return (
-        <div onClick={onClose} style={{position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(210,218,230,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px'}}>
+        <div onClick={onClose} style={{position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'rgba(210,218,230,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px'}}>
             <div onClick={e => e.stopPropagation()} style={{width: 'min(860px, 90vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', borderRadius: '28px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-modal)', overflow: 'hidden'}}>
 
                 {/* Header */}

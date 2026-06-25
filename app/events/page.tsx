@@ -346,7 +346,7 @@ function RecordForm({record, table, onClose, initialType}: {record: AirtableReco
     const hasSummary    = showEnriched && summaryField && record!.getCellValue(summaryField);
 
     return (
-        <div onClick={onClose} style={{position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px'}}>
+        <div onClick={onClose} style={{position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px'}}>
             <div onClick={e => e.stopPropagation()} style={{position: 'relative', width: 'min(640px, 94vw)', maxHeight: '90vh', display: 'flex', flexDirection: 'column', borderRadius: '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)', overflow: 'hidden'}}>
                 <CornerBrackets inset={10} size={12} />
 

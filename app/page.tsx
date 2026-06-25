@@ -51,6 +51,55 @@ function FeatureCard({ href, label, desc, Icon, n }: typeof SECTIONS[number]) {
     );
 }
 
+// Featured hero visual: the user's retro-computer image, with a brutalist
+// line-art computer as a fallback until /public/hero-computer.png is added.
+function HeroComputer({ isNarrow }: { isNarrow: boolean }) {
+    // Show the brutalist SVG by default; swap in /hero-computer.png only once it
+    // actually loads, so a missing file never shows a broken-image icon.
+    const [imgOk, setImgOk] = React.useState(false);
+    React.useEffect(() => {
+        const img = new window.Image();
+        img.onload = () => setImgOk(true);
+        img.onerror = () => setImgOk(false);
+        img.src = '/hero-computer.png';
+    }, []);
+    const size = isNarrow ? 220 : 340;
+    const box: React.CSSProperties = {
+        flexShrink: 0, width: size, height: size, order: isNarrow ? -1 : 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+    };
+    if (imgOk) {
+        return (
+            <div style={box} aria-hidden>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/hero-computer.png" alt="Retro computer"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            </div>
+        );
+    }
+    return (
+        <div style={box} aria-hidden>
+            <svg viewBox="0 0 320 300" width="100%" height="100%" fill="none">
+                <rect x="56" y="22" width="208" height="156" rx="8" fill="var(--surface)" stroke="var(--text-primary)" strokeWidth="3" />
+                <rect x="76" y="42" width="168" height="104" fill="var(--accent)" stroke="var(--text-primary)" strokeWidth="2" />
+                <g stroke="var(--accent-text)" strokeWidth="4" strokeLinecap="round">
+                    <line x1="92" y1="66" x2="216" y2="66" />
+                    <line x1="92" y1="86" x2="186" y2="86" />
+                    <line x1="92" y1="106" x2="208" y2="106" />
+                    <line x1="92" y1="126" x2="158" y2="126" />
+                </g>
+                <circle cx="232" cy="162" r="5" fill="var(--text-primary)" />
+                <rect x="142" y="178" width="36" height="18" fill="var(--surface)" stroke="var(--text-primary)" strokeWidth="3" />
+                <rect x="34" y="208" width="252" height="58" rx="8" fill="var(--surface)" stroke="var(--text-primary)" strokeWidth="3" />
+                <g stroke="var(--text-primary)" strokeWidth="3" strokeLinecap="round">
+                    <line x1="56" y1="226" x2="78" y2="226" /><line x1="90" y1="226" x2="112" y2="226" /><line x1="124" y1="226" x2="146" y2="226" /><line x1="158" y1="226" x2="180" y2="226" /><line x1="192" y1="226" x2="214" y2="226" /><line x1="226" y1="226" x2="262" y2="226" />
+                    <line x1="56" y1="246" x2="92" y2="246" /><line x1="104" y1="246" x2="180" y2="246" /><line x1="192" y1="246" x2="262" y2="246" />
+                </g>
+            </svg>
+        </div>
+    );
+}
+
 export default function Landing() {
     const isNarrow = useIsNarrow();
     const marqueeItems = ['Cheat Sheets', 'Dev Work', 'Events', 'Jobs', 'Tools'];
@@ -76,10 +125,12 @@ export default function Landing() {
                         <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '18px' }}>// Personal resource hub</div>
                         <h1 style={{
                             margin: 0, fontFamily: DISPLAY, textTransform: 'uppercase',
-                            fontSize: 'clamp(46px, 11vw, 104px)', lineHeight: 0.9, letterSpacing: '0.005em',
+                            fontSize: 'clamp(46px, 11vw, 104px)', lineHeight: 0.98, letterSpacing: '0.005em',
                             color: 'var(--text-primary)',
                         }}>
-                            Everything<br />you save,<br /><span style={{ background: 'var(--accent)', color: 'var(--accent-text)', padding: '0 0.12em', boxDecorationBreak: 'clone', WebkitBoxDecorationBreak: 'clone' }}>one&nbsp;deck.</span>
+                            <span style={{ display: 'block' }}>Everything</span>
+                            <span style={{ display: 'block' }}>you save,</span>
+                            <span style={{ display: 'inline-block', marginTop: '0.1em', background: 'var(--accent)', color: 'var(--accent-text)', padding: '0.04em 0.16em 0.1em' }}>one&nbsp;deck.</span>
                         </h1>
                         <p style={{ fontSize: isNarrow ? '15px' : '17px', lineHeight: 1.6, fontWeight: 500, color: 'var(--text-muted)', margin: '22px 0 26px', maxWidth: '46ch' }}>
                            AI powered tool to help you organize your dev resources, notes, and references in one place. Save time and stay productive with DevDeck. API integration coming from airtable agents, Mapbox, and more. Stay tuned for updates and new features!
@@ -102,34 +153,26 @@ export default function Landing() {
                         </div>
                     </div>
 
-                    {/* Brutalist geometric graphic (hidden on the smallest screens) */}
-                    {!isNarrow && (
-                        <div style={{ flexShrink: 0, width: '320px', height: '320px' }} aria-hidden>
-                            <svg viewBox="0 0 320 320" width="320" height="320" fill="none">
-                                <rect x="22" y="22" width="276" height="276" stroke="var(--text-primary)" strokeWidth="2" />
-                                <rect x="54" y="54" width="150" height="150" fill="var(--accent)" stroke="var(--text-primary)" strokeWidth="2" />
-                                <rect x="128" y="128" width="150" height="150" fill="var(--surface)" stroke="var(--text-primary)" strokeWidth="2" />
-                                <text x="143" y="210" fontFamily="Anton, Impact, sans-serif" fontSize="120" fill="var(--text-primary)">D</text>
-                                <circle cx="78" cy="250" r="14" fill="var(--text-primary)" />
-                                <line x1="232" y1="60" x2="288" y2="60" stroke="var(--text-primary)" strokeWidth="2" />
-                                <line x1="260" y1="32" x2="260" y2="88" stroke="var(--text-primary)" strokeWidth="2" />
-                            </svg>
-                        </div>
-                    )}
+                    {/* Featured retro-computer hero visual (desktop + mobile) */}
+                    <HeroComputer isNarrow={isNarrow} />
                 </div>
             </section>
 
             {/* ── Kinetic marquee ────────────────────────────────────────────── */}
             <div style={{ borderTop: '2px solid var(--text-primary)', borderBottom: '2px solid var(--text-primary)', background: 'var(--accent)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                <div className="dd-marquee-track" style={{ display: 'inline-flex', animation: 'ddMarquee 18s linear infinite' }}>
-                    {[0, 1].map(rep => (
-                        <div key={rep} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                            {marqueeItems.map(item => (
-                                <span key={item} style={{ display: 'inline-flex', alignItems: 'center', fontFamily: DISPLAY, fontSize: '26px', textTransform: 'uppercase', color: 'var(--accent-text)', padding: '10px 0' }}>
-                                    <span style={{ padding: '0 22px' }}>{item}</span>
-                                    <span style={{ fontSize: '16px' }}>✦</span>
-                                </span>
-                            ))}
+                <div className="dd-marquee-track" style={{ display: 'inline-flex', animation: 'ddMarquee 26s linear infinite' }}>
+                    {/* Two identical sequences, each wide enough to fill any screen, so
+                        translateX(-50%) loops with no visible gap. */}
+                    {[0, 1].map(seq => (
+                        <div key={seq} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+                            {Array.from({ length: 4 }).flatMap((_, k) =>
+                                marqueeItems.map((item, i) => (
+                                    <span key={`${k}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', fontFamily: DISPLAY, fontSize: '26px', textTransform: 'uppercase', color: 'var(--accent-text)', padding: '10px 0' }}>
+                                        <span style={{ padding: '0 22px' }}>{item}</span>
+                                        <span style={{ fontSize: '16px' }}>✦</span>
+                                    </span>
+                                )),
+                            )}
                         </div>
                     ))}
                 </div>

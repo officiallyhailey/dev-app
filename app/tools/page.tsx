@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useBase, useRecords, AirtableBoundary, FieldType } from '@/lib/airtable/hooks';
 import { Shell } from '@/lib/components/Shell';
+import { useIsNarrow } from '@/lib/useIsNarrow';
 type Field = any;
 type FieldConfig = any;
 import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, CaretRightIcon, HouseIcon, SquaresFourIcon, PlusIcon } from '@phosphor-icons/react';
@@ -243,7 +244,7 @@ function ToolModal({ record, nameField, summaryField, linkField, orgField, categ
     }, [onClose]);
 
     return (
-        <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div onClick={onClose} style={{ position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
             <div onClick={e => e.stopPropagation()}
                 style={{ position: 'relative', width: 'min(720px, 94vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', borderRadius: '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)', overflow: 'hidden' }}>
                 <CornerBrackets inset={10} size={12} />
@@ -361,6 +362,7 @@ function HomeView({ visibleRecords, recentRecords, allCategories, categoryMap, n
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 function ToolsApp(): React.ReactElement {
+    const isNarrow = useIsNarrow();
     const base    = useBase();
     const errorState = null;
     // Tools table (pinned; the standalone base has many tables).
@@ -491,16 +493,14 @@ function ToolsApp(): React.ReactElement {
             `}</style>
 
             <div style={{ position: 'relative', height: '100%', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <CornerBrackets inset={10} size={12} />
 
                 {/* Top utility bar */}
-                <div style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                        <div style={{ width: '24px', height: '24px', borderRadius: '5px', background: ACCENT, border: `1.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <SquaresFourIcon size={13} weight="bold" color={ACCENT_TEXT} />
+                <div style={{ padding: isNarrow ? '10px 12px' : '12px 28px', display: 'flex', alignItems: 'center', gap: isNarrow ? '8px' : '16px', flexWrap: 'wrap', flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
+                    {!isNarrow && (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <span style={{ ...monoLabel, fontSize: '11px', color: 'var(--text-primary)' }}>{table.name} / DIR</span>
                         </div>
-                        <span style={{ ...monoLabel, fontSize: '11px', color: 'var(--text-primary)' }}>{table.name} / DIR</span>
-                    </div>
+                    )}
 
                     {/* Nav (square) */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -519,7 +519,7 @@ function ToolsApp(): React.ReactElement {
                     </div>
 
                     {/* Search (square) */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', width: '240px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', width: isNarrow ? '100%' : '240px', flex: isNarrow ? '1 1 100%' : '0 0 240px' }}>
                         <MagnifyingGlassIcon size={14} color="var(--text-muted)" weight="bold" />
                         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="SEARCH…"
                             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '12px', color: 'var(--text-primary)', fontFamily: MONO, letterSpacing: '0.04em' }} />
