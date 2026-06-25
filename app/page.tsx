@@ -63,7 +63,7 @@ function HeroComputer({ isNarrow }: { isNarrow: boolean }) {
         img.onerror = () => setImgOk(false);
         img.src = '/hero-computer.png';
     }, []);
-    const size = isNarrow ? 220 : 340;
+    const size = isNarrow ? 132 : 300;
     const box: React.CSSProperties = {
         flexShrink: 0, width: size, height: size, order: isNarrow ? -1 : 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -115,87 +115,82 @@ export default function Landing() {
 
             <div style={{ position: 'sticky', top: 0, zIndex: 1200 }}><TopNav /></div>
 
-            {/* ── Hero ───────────────────────────────────────────────────────── */}
+            {/* ── Hero — everything above the fold, one full screen ──────────── */}
             <section style={{
-                position: 'relative', padding: isNarrow ? '36px 16px 28px' : '64px 32px 48px',
+                position: 'relative', minHeight: 'calc(100dvh - var(--nav-h))',
+                display: 'flex', flexDirection: 'column',
                 backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)',
-                backgroundSize: '40px 40px', overflow: 'hidden',
+                backgroundSize: '40px 40px',
             }}>
-                <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', gap: isNarrow ? '28px' : '40px', alignItems: 'center' }}>
-                    <div style={{ flex: 1, minWidth: 0, textAlign: isNarrow ? 'center' : 'left' }}>
-                        <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '18px' }}>// Personal resource hub</div>
-                        <h1 style={{
-                            margin: 0, fontFamily: DISPLAY, textTransform: 'uppercase',
-                            fontSize: 'clamp(46px, 11vw, 104px)', lineHeight: 0.98, letterSpacing: '0.005em',
-                            color: 'var(--text-primary)',
-                        }}>
-                            <span style={{ display: 'block' }}>Everything</span>
-                            <span style={{ display: 'block' }}>you save,</span>
-                            <span style={{ display: 'inline-block', marginTop: '0.1em', background: 'var(--accent)', color: 'var(--accent-text)', padding: '0.04em 0.16em 0.1em' }}>one&nbsp;deck.</span>
-                        </h1>
-                        <p style={{ fontSize: isNarrow ? '15px' : '17px', lineHeight: 1.6, fontWeight: 500, color: 'var(--text-muted)', margin: isNarrow ? '22px auto 26px' : '22px 0 26px', maxWidth: '46ch' }}>
-                           AI powered tool to help you organize your dev resources, notes, and references in one place. Save time and stay productive with DevDeck. API integration coming from airtable agents, Mapbox, and more. Stay tuned for updates and new features!
-                        </p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: isNarrow ? 'center' : 'flex-start' }}>
-                            <Link href="/cheatsheet" style={{
-                                ...mono, fontSize: '12px', textDecoration: 'none', padding: '14px 22px',
-                                background: 'var(--accent)', color: 'var(--accent-text)', border: '2px solid var(--text-primary)',
-                                boxShadow: '5px 5px 0 var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px',
+                {/* Centered content: graphic, title, description, buttons, build link */}
+                <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: isNarrow ? '14px' : '26px', padding: isNarrow ? '16px' : '32px' }}>
+                    <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', gap: isNarrow ? '6px' : '40px', alignItems: 'center' }}>
+                        <div style={{ flex: 1, minWidth: 0, textAlign: isNarrow ? 'center' : 'left' }}>
+                            <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: isNarrow ? '8px' : '16px' }}>// Personal resource hub</div>
+                            <h1 style={{
+                                margin: 0, fontFamily: DISPLAY, textTransform: 'uppercase',
+                                fontSize: 'clamp(40px, 10vw, 96px)', lineHeight: 0.98, letterSpacing: '0.005em',
+                                color: 'var(--text-primary)',
                             }}>
-                                Start exploring <ArrowRightIcon size={14} weight="bold" />
-                            </Link>
-                            <a href="#sections" className="dd-cta" style={{
-                                ...mono, fontSize: '12px', textDecoration: 'none', padding: '14px 22px',
-                                background: 'var(--surface)', color: 'var(--text-primary)', border: '2px solid var(--text-primary)',
-                                transition: 'background 0.12s, color 0.12s',
-                            }}>
-                                Browse sections
-                            </a>
+                                <span style={{ display: 'block' }}>Everything</span>
+                                <span style={{ display: 'block' }}>you save,</span>
+                                <span style={{ display: 'inline-block', marginTop: '0.08em', background: 'var(--accent)', color: 'var(--accent-text)', padding: '0.04em 0.16em 0.1em' }}>one&nbsp;deck.</span>
+                            </h1>
+                            <p style={{ fontSize: isNarrow ? '14px' : '17px', lineHeight: 1.55, fontWeight: 500, color: 'var(--text-muted)', margin: isNarrow ? '12px auto 16px' : '20px 0 24px', maxWidth: '46ch' }}>
+                                AI powered tool to help you organize your dev resources, notes, and references in one place.
+                            </p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: isNarrow ? 'center' : 'flex-start' }}>
+                                <Link href="/cheatsheet" style={{
+                                    ...mono, fontSize: '12px', textDecoration: 'none', padding: '13px 20px',
+                                    background: 'var(--accent)', color: 'var(--accent-text)', border: '2px solid var(--text-primary)',
+                                    boxShadow: '5px 5px 0 var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px',
+                                }}>
+                                    Start exploring <ArrowRightIcon size={14} weight="bold" />
+                                </Link>
+                                <a href="#sections" className="dd-cta" style={{
+                                    ...mono, fontSize: '12px', textDecoration: 'none', padding: '13px 20px',
+                                    background: 'var(--surface)', color: 'var(--text-primary)', border: '2px solid var(--text-primary)',
+                                    transition: 'background 0.12s, color 0.12s',
+                                }}>
+                                    Browse sections
+                                </a>
+                            </div>
                         </div>
+
+                        {/* Featured retro-computer hero visual (desktop + mobile) */}
+                        <HeroComputer isNarrow={isNarrow} />
                     </div>
 
-                    {/* Featured retro-computer hero visual (desktop + mobile) */}
-                    <HeroComputer isNarrow={isNarrow} />
+                    {/* See how it's built — compact, centered on mobile */}
+                    <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', textAlign: isNarrow ? 'center' : 'left' }}>
+                        <Link href="/about" className="dd-cta" style={{
+                            ...mono, fontSize: '12px', textDecoration: 'none', padding: '12px 20px',
+                            background: 'var(--surface)', color: 'var(--text-primary)', border: '2px solid var(--text-primary)',
+                            display: 'inline-flex', alignItems: 'center', gap: '8px', transition: 'background 0.12s, color 0.12s',
+                        }}>
+                            // See how it&apos;s built <ArrowRightIcon size={14} weight="bold" />
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Rolling sections marquee — pinned to the bottom of the hero */}
+                <div style={{ flexShrink: 0, borderTop: '2px solid var(--text-primary)', background: 'var(--accent)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    <div className="dd-marquee-track" style={{ display: 'inline-flex', animation: 'ddMarquee 26s linear infinite' }}>
+                        {[0, 1].map(seq => (
+                            <div key={seq} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+                                {Array.from({ length: 4 }).flatMap((_, k) =>
+                                    marqueeItems.map((item, i) => (
+                                        <span key={`${k}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', fontFamily: DISPLAY, fontSize: isNarrow ? '20px' : '26px', textTransform: 'uppercase', color: 'var(--accent-text)', padding: isNarrow ? '8px 0' : '10px 0' }}>
+                                            <span style={{ padding: '0 20px' }}>{item}</span>
+                                            <span style={{ fontSize: '14px' }}>✦</span>
+                                        </span>
+                                    )),
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </section>
-
-            {/* ── "How it's built" teaser → dedicated /about page ────────────── */}
-            <Link href="/about" style={{ textDecoration: 'none', display: 'block', borderTop: '2px solid var(--text-primary)' }}>
-                <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isNarrow ? '22px 16px' : '28px 32px', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', alignItems: isNarrow ? 'flex-start' : 'center', justifyContent: 'space-between', gap: '14px' }}>
-                    <div>
-                        <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '8px' }}>// Under the hood</div>
-                        <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px, 5vw, 34px)', textTransform: 'uppercase', lineHeight: 1, color: 'var(--text-primary)' }}>
-                            See how it&apos;s built
-                        </div>
-                        <div style={{ fontSize: isNarrow ? '13.5px' : '15px', fontWeight: 500, color: 'var(--text-muted)', marginTop: '8px', maxWidth: '60ch' }}>
-                            Architecture, tech stack, hosting, security and the engineering &amp; design decisions behind DevDeck.
-                        </div>
-                    </div>
-                    <span style={{ ...mono, fontSize: '12px', flexShrink: 0, padding: '14px 22px', background: 'var(--accent)', color: 'var(--accent-text)', border: '2px solid var(--text-primary)', boxShadow: '5px 5px 0 var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                        Read the write-up <ArrowRightIcon size={14} weight="bold" />
-                    </span>
-                </div>
-            </Link>
-
-            {/* ── Kinetic marquee ────────────────────────────────────────────── */}
-            <div style={{ borderTop: '2px solid var(--text-primary)', borderBottom: '2px solid var(--text-primary)', background: 'var(--accent)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                <div className="dd-marquee-track" style={{ display: 'inline-flex', animation: 'ddMarquee 26s linear infinite' }}>
-                    {/* Two identical sequences, each wide enough to fill any screen, so
-                        translateX(-50%) loops with no visible gap. */}
-                    {[0, 1].map(seq => (
-                        <div key={seq} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-                            {Array.from({ length: 4 }).flatMap((_, k) =>
-                                marqueeItems.map((item, i) => (
-                                    <span key={`${k}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', fontFamily: DISPLAY, fontSize: '26px', textTransform: 'uppercase', color: 'var(--accent-text)', padding: '10px 0' }}>
-                                        <span style={{ padding: '0 22px' }}>{item}</span>
-                                        <span style={{ fontSize: '16px' }}>✦</span>
-                                    </span>
-                                )),
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
 
             {/* ── Sections ───────────────────────────────────────────────────── */}
             <section id="sections" style={{ flex: 1, padding: isNarrow ? '28px 16px 48px' : '48px 32px 72px' }}>
