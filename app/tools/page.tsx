@@ -615,40 +615,37 @@ function ToolsApp(): React.ReactElement {
             <div style={{ position: 'relative', height: '100%', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
                 {/* Top utility bar */}
-                <div style={{ padding: isNarrow ? '10px 12px' : '12px 28px', display: 'flex', alignItems: 'center', gap: isNarrow ? '8px' : '16px', flexWrap: 'wrap', flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
-                    {/* Search + nav — grouped together on the right, in one line */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', flexShrink: 0, width: isNarrow ? '100%' : 'auto', marginLeft: isNarrow ? 0 : 'auto', justifyContent: 'flex-end' }}>
-                        {/* Search (fixed width) */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', width: isNarrow ? '100%' : '260px', flex: isNarrow ? '1 1 100%' : '0 0 260px' }}>
-                            <MagnifyingGlassIcon size={14} color="var(--text-muted)" weight="bold" />
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="SEARCH…"
-                                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: '12px', color: 'var(--text-primary)', fontFamily: MONO, letterSpacing: '0.04em' }} />
-                            {search && (
-                                <div onClick={() => setSearch('')} style={{ width: '18px', height: '18px', borderRadius: '4px', background: 'var(--surface-2)', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0 }}>
-                                    <XIcon size={9} weight="bold" />
-                                </div>
-                            )}
-                        </div>
-                        {(view !== 'home' || isSearching) && (
-                            <div onClick={() => { setView('home'); setActiveCategory(null); setSearch(''); }} title="Back" aria-label="Back"
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '36px', borderRadius: '5px', cursor: 'pointer', border: '1.5px solid var(--ink-line)', background: 'var(--surface)', color: 'var(--text-primary)' }}
-                                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'}
-                                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'}>
-                                <ArrowLeftIcon size={15} weight="bold" />
+                <div style={{ padding: isNarrow ? '10px 12px' : '12px 28px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap', flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
+                    {/* Search — first, on the same line; grows to fill on mobile, fixed on desktop */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', width: isNarrow ? 'auto' : '260px', flex: isNarrow ? '1 1 140px' : '0 0 260px', minWidth: isNarrow ? '120px' : undefined }}>
+                        <MagnifyingGlassIcon size={14} color="var(--text-muted)" weight="bold" />
+                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="SEARCH…"
+                            style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: '12px', color: 'var(--text-primary)', fontFamily: MONO, letterSpacing: '0.04em' }} />
+                        {search && (
+                            <div onClick={() => setSearch('')} style={{ width: '18px', height: '18px', borderRadius: '4px', background: 'var(--surface-2)', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0 }}>
+                                <XIcon size={9} weight="bold" />
                             </div>
                         )}
-                        <div onClick={() => { setView('all'); setSearch(''); }} title="View all" aria-label="View all"
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '36px', borderRadius: '5px', cursor: 'pointer', border: '1.5px solid var(--ink-line)', background: (view === 'all' && !isSearching) ? INK : 'var(--surface)', color: (view === 'all' && !isSearching) ? '#fff' : 'var(--text-primary)' }}
-                            onMouseEnter={e => { if (!(view === 'all' && !isSearching)) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'; }}
-                            onMouseLeave={e => { if (!(view === 'all' && !isSearching)) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'; }}>
-                            <SquaresFourIcon size={15} weight="bold" />
-                        </div>
-                        <div onClick={() => setShowNew(true)}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}`, fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', userSelect: 'none' }}>
-                            <PlusIcon size={13} weight="bold" /> New
-                        </div>
-                        <HelpButton page="tools" />
                     </div>
+                    {(view !== 'home' || isSearching) && (
+                        <div onClick={() => { setView('home'); setActiveCategory(null); setSearch(''); }} title="Back" aria-label="Back"
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '5px', cursor: 'pointer', flexShrink: 0, border: '1.5px solid var(--ink-line)', background: 'var(--surface)', color: 'var(--text-primary)' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'}>
+                            <ArrowLeftIcon size={15} weight="bold" />
+                        </div>
+                    )}
+                    <div onClick={() => { setView('all'); setSearch(''); }} title="View all" aria-label="View all"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '5px', cursor: 'pointer', flexShrink: 0, border: '1.5px solid var(--ink-line)', background: (view === 'all' && !isSearching) ? INK : 'var(--surface)', color: (view === 'all' && !isSearching) ? '#fff' : 'var(--text-primary)' }}
+                        onMouseEnter={e => { if (!(view === 'all' && !isSearching)) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'; }}
+                        onMouseLeave={e => { if (!(view === 'all' && !isSearching)) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'; }}>
+                        <SquaresFourIcon size={15} weight="bold" />
+                    </div>
+                    <div onClick={() => setShowNew(true)} title="New tool" aria-label="New tool"
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '5px', cursor: 'pointer', flexShrink: 0, background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}` }}>
+                        <PlusIcon size={15} weight="bold" />
+                    </div>
+                    <HelpButton page="tools" />
                 </div>
 
                 {/* Body: main content (full width) */}

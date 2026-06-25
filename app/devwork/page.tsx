@@ -812,16 +812,16 @@ function DevWorkGrid(): React.ReactElement {
                             </div>
                             <span style={{ ...monoLabel, fontSize: '11px', color: 'var(--text-primary)' }}>DEV&nbsp;WORK&nbsp;/&nbsp;LABS</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '9px 14px', borderRadius: '8px', border: '1.5px solid var(--ink-line)', background: 'var(--surface)', width: isNarrow ? '150px' : '220px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap', justifyContent: 'flex-end', width: isNarrow ? '100%' : 'auto' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '9px 14px', borderRadius: '8px', border: '1.5px solid var(--ink-line)', background: 'var(--surface)', width: isNarrow ? 'auto' : '220px', flex: isNarrow ? '1 1 100px' : '0 0 220px', minWidth: isNarrow ? '80px' : undefined }}>
                                 <MagnifyingGlassIcon size={15} color="var(--text-muted)" weight="bold" />
                                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search"
                                     style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'inherit' }} />
                                 {search && <XIcon size={12} weight="bold" color="var(--text-muted)" style={{ cursor: 'pointer', flexShrink: 0 }} onClick={() => setSearch('')} />}
                             </div>
-                            <div onClick={() => setShowNew(true)}
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}`, ...monoLabel, fontSize: '11px', userSelect: 'none' }}>
-                                <PlusIcon size={14} weight="bold" /> New
+                            <div onClick={() => setShowNew(true)} title="New project" aria-label="New project"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', flexShrink: 0, cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}`, borderRadius: '6px', userSelect: 'none' }}>
+                                <PlusIcon size={15} weight="bold" />
                             </div>
                             <HelpButton page="devwork" />
                         </div>

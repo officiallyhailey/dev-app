@@ -494,9 +494,9 @@ function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
                         <p style={{margin: '3px 0 0', fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500}}>{visibleRecords.length} opportunities</p>
                     </div>
                     <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0}}>
-                        <div onClick={() => setShowNew(true)}
-                            style={{display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: '2px solid var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', userSelect: 'none'}}>
-                            <Plus size={13} weight="bold" /> New
+                        <div onClick={() => setShowNew(true)} title="New job" aria-label="New job"
+                            style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', flexShrink: 0, cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: '2px solid var(--text-primary)', borderRadius: '5px', userSelect: 'none'}}>
+                            <Plus size={16} weight="bold" />
                         </div>
                         <HelpButton page="jobs" />
                     </div>

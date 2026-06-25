@@ -111,7 +111,12 @@ export default function Landing() {
         <div style={{ minHeight: '100dvh', background: 'var(--page)', display: 'flex', flexDirection: 'column' }}>
             <style>{`
                 @keyframes ddMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-                @media (prefers-reduced-motion: reduce) { .dd-marquee-track { animation: none !important; } }
+                @keyframes ddHeroInL { from { opacity: 0; transform: translateX(-16%); } to { opacity: 1; transform: translateX(0); } }
+                @keyframes ddHeroInR { from { opacity: 0; transform: translateX(16%); } to { opacity: 1; transform: translateX(0); } }
+                @media (prefers-reduced-motion: reduce) {
+                    .dd-marquee-track { animation: none !important; }
+                    .dd-hero-bg-row { animation: none !important; opacity: 1 !important; transform: none !important; }
+                }
                 .dd-cta:hover { background: var(--accent) !important; color: var(--accent-text) !important; }
             `}</style>
 
@@ -121,12 +126,39 @@ export default function Landing() {
             {/* ── Hero — everything above the fold, one full screen ──────────── */}
             <section style={{
                 position: 'relative', minHeight: 'calc(100dvh - var(--nav-h))',
-                display: 'flex', flexDirection: 'column',
+                display: 'flex', flexDirection: 'column', overflow: 'hidden',
                 backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)',
                 backgroundSize: '40px 40px',
             }}>
+                {/* Giant faint scrolling page names behind the hero — adds life without hurting readability.
+                    Rows fill the full height, each starts on a different word, and they drift at different speeds. */}
+                <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', pointerEvents: 'none', opacity: 0.06 }}>
+                    {Array.from({ length: isNarrow ? 10 : 7 }).map((_, row) => {
+                        // Rotate the word order per line so the same words never stack vertically.
+                        const off = row % marqueeItems.length;
+                        const rowItems = [...marqueeItems.slice(off), ...marqueeItems.slice(0, off)];
+                        return (
+                            // One-time fade + scroll into a fixed resting place (~6s), no loop —
+                            // the bottom marquee carries the continuous motion. width:max-content keeps
+                            // the track from being stretched by the flex column.
+                            <div key={row} className="dd-hero-bg-row" style={{ flexShrink: 0, width: 'max-content', display: 'inline-flex', whiteSpace: 'nowrap', lineHeight: 1, animation: `${row % 2 ? 'ddHeroInR' : 'ddHeroInL'} ${(3.6 + (row % 5) * 0.2).toFixed(2)}s cubic-bezier(0.16, 1, 0.3, 1) ${(row * 0.04).toFixed(2)}s both` }}>
+                                {[0, 1].map(seq => (
+                                    <div key={seq} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+                                        {rowItems.map((item, i) => (
+                                            <span key={`${seq}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', fontFamily: DISPLAY, fontSize: 'clamp(58px, 16vw, 140px)', lineHeight: 1, textTransform: 'uppercase', color: 'var(--text-primary)' }}>
+                                                <span style={{ padding: '0 0.22em' }}>{item}</span>
+                                                <span style={{ fontSize: '0.4em' }}>✦</span>
+                                            </span>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
+
                 {/* Centered content: graphic, title, description, buttons, build link */}
-                <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: isNarrow ? '14px' : '26px', padding: isNarrow ? '16px' : '32px' }}>
+                <div style={{ position: 'relative', zIndex: 1, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: isNarrow ? '14px' : '26px', padding: isNarrow ? '16px' : '32px' }}>
                     <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', gap: isNarrow ? '6px' : '40px', alignItems: 'center' }}>
                         <div style={{ flex: 1, minWidth: 0, textAlign: isNarrow ? 'center' : 'left' }}>
                             <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: isNarrow ? '8px' : '16px' }}>// Personal resource hub</div>
@@ -181,15 +213,15 @@ export default function Landing() {
                 </div>
 
                 {/* Rolling sections marquee — pinned to the bottom of the hero */}
-                <div style={{ flexShrink: 0, borderTop: '2px solid var(--text-primary)', background: 'var(--accent)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <div style={{ position: 'relative', zIndex: 1, flexShrink: 0, borderTop: '2px solid var(--text-primary)', background: 'var(--accent)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                     <div className="dd-marquee-track" style={{ display: 'inline-flex', animation: 'ddMarquee 26s linear infinite' }}>
                         {[0, 1].map(seq => (
                             <div key={seq} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
                                 {Array.from({ length: 4 }).flatMap((_, k) =>
                                     marqueeItems.map((item, i) => (
-                                        <span key={`${k}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', fontFamily: DISPLAY, fontSize: isNarrow ? '20px' : '26px', textTransform: 'uppercase', color: 'var(--accent-text)', padding: isNarrow ? '8px 0' : '10px 0' }}>
-                                            <span style={{ padding: '0 20px' }}>{item}</span>
-                                            <span style={{ fontSize: '14px' }}>✦</span>
+                                        <span key={`${k}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', fontFamily: DISPLAY, fontSize: isNarrow ? '28px' : '40px', textTransform: 'uppercase', color: 'var(--accent-text)', padding: isNarrow ? '10px 0' : '14px 0' }}>
+                                            <span style={{ padding: '0 24px' }}>{item}</span>
+                                            <span style={{ fontSize: '0.5em' }}>✦</span>
                                         </span>
                                     )),
                                 )}

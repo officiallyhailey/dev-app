@@ -1303,8 +1303,9 @@ function CheatSheetsApp(): React.ReactElement {
                             const active = mode === m;
                             return (
                                 <button key={m} onClick={() => { setMode(m); setSelectedRecord(null); }}
-                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '5px', cursor: 'pointer', fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', border: '1.5px solid var(--ink-line)', background: active ? INK : 'var(--surface)', color: active ? '#fff' : 'var(--text-muted)' }}>
-                                    {m === 'new' && <PlusIcon size={13} weight="bold" />}{m === 'home' ? 'Search' : 'New'}
+                                    title={m === 'home' ? 'Search' : 'New sheet'} aria-label={m === 'home' ? 'Search' : 'New sheet'}
+                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '36px', cursor: 'pointer', borderRadius: '5px', border: '1.5px solid var(--ink-line)', background: active ? INK : 'var(--surface)', color: active ? '#fff' : 'var(--text-muted)' }}>
+                                    {m === 'home' ? <MagnifyingGlassIcon size={15} weight="bold" /> : <PlusIcon size={15} weight="bold" />}
                                 </button>
                             );
                         })}

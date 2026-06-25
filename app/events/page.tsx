@@ -861,7 +861,7 @@ function EventsApp(): React.ReactElement {
                             <p style={{margin: '10px 0 0', fontFamily: MONO, fontSize: '11px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase'}}>■ {todayLabel}</p>
                         </div>
 
-                        <div style={{display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap'}}>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', width: isNarrow ? '100%' : 'auto'}}>
                             {/* Type filter */}
                             <div style={{display: 'flex', gap: '6px'}}>
                                 {(['all', 'task', 'event', 'past'] as const).map(t => {
@@ -877,7 +877,7 @@ function EventsApp(): React.ReactElement {
                             </div>
 
                             {/* Search */}
-                            <div style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', minWidth: '200px'}}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', width: isNarrow ? 'auto' : '200px', flex: isNarrow ? '1 1 120px' : '0 0 200px', minWidth: isNarrow ? '100px' : undefined}}>
                                 <MagnifyingGlass size={14} color="var(--text-muted)" weight="bold" />
                                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
                                     style={{flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '12px', color: 'var(--text-primary)', fontFamily: MONO, letterSpacing: '0.03em'}} />
@@ -889,11 +889,11 @@ function EventsApp(): React.ReactElement {
                             </div>
 
                             {/* Add */}
-                            <div onClick={openCreate}
-                                style={{display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', borderRadius: '5px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `1.5px solid ${INK}`, fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', userSelect: 'none', transition: 'background 0.12s'}}
+                            <div onClick={openCreate} title="New item" aria-label="New item"
+                                style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', flexShrink: 0, borderRadius: '5px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `1.5px solid ${INK}`, userSelect: 'none', transition: 'background 0.12s'}}
                                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = ACCENT_DEEP}
                                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = ACCENT}>
-                                <Plus size={15} weight="bold" /> Add
+                                <Plus size={16} weight="bold" />
                             </div>
                             <HelpButton page="events" />
                         </div>
