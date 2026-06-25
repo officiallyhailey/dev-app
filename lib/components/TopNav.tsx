@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ListIcon, XIcon } from '@phosphor-icons/react';
+import { ListIcon, XIcon, HouseIcon, DesktopIcon } from '@phosphor-icons/react';
 import { useIsNarrow } from '@/lib/useIsNarrow';
 
 export const NAV_HEIGHT = 56;
@@ -38,7 +38,7 @@ export function TopNav() {
 
     const wordmark = (
         <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '9px', textDecoration: 'none' }}>
-            <span style={{ width: '28px', height: '28px', background: 'var(--accent)', border: '2px solid var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: DISPLAY, fontSize: '17px', lineHeight: 1, color: 'var(--accent-text)', flexShrink: 0 }}>D</span>
+            <span style={{ width: '28px', height: '28px', background: 'var(--accent)', border: '2px solid var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-text)', flexShrink: 0 }}><DesktopIcon size={16} weight="bold" /></span>
             <span style={{ fontFamily: DISPLAY, fontSize: '22px', letterSpacing: '0.02em', color: 'var(--text-primary)', textTransform: 'uppercase' }}>DevDeck</span>
         </Link>
     );
@@ -54,6 +54,19 @@ export function TopNav() {
 
             {!isNarrow ? (
                 <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Link href="/" aria-label="Home" title="Home"
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '36px',
+                            textDecoration: 'none', border: '2px solid',
+                            borderColor: isActive(pathname, '/') ? 'var(--text-primary)' : 'transparent',
+                            background: isActive(pathname, '/') ? 'var(--accent)' : 'transparent',
+                            color: isActive(pathname, '/') ? 'var(--accent-text)' : 'var(--text-primary)',
+                            transition: 'background 0.1s, color 0.1s, border-color 0.1s',
+                        }}
+                        onMouseEnter={e => { if (!isActive(pathname, '/')) { e.currentTarget.style.background = 'var(--text-primary)'; e.currentTarget.style.color = 'var(--surface)'; } }}
+                        onMouseLeave={e => { if (!isActive(pathname, '/')) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-primary)'; } }}>
+                        <HouseIcon size={17} weight="bold" />
+                    </Link>
                     {LINKS.map(link => {
                         const active = isActive(pathname, link.href);
                         return (
@@ -87,6 +100,17 @@ export function TopNav() {
                     display: 'flex', flexDirection: 'column', padding: '8px',
                     boxShadow: '0 14px 24px rgba(0,0,0,0.18)',
                 }}>
+                    <Link href="/" style={{
+                        fontFamily: 'var(--font-body)', fontSize: '17px', fontWeight: 700,
+                        textTransform: 'uppercase', letterSpacing: '0.02em', textDecoration: 'none',
+                        padding: '15px 14px', margin: '3px 0', border: '2px solid var(--text-primary)',
+                        background: isActive(pathname, '/') ? 'var(--accent)' : 'var(--surface)',
+                        color: isActive(pathname, '/') ? 'var(--accent-text)' : 'var(--text-primary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}><HouseIcon size={18} weight="bold" /> Home</span>
+                        {isActive(pathname, '/') && <span style={{ fontFamily: DISPLAY, fontSize: '14px' }}>●</span>}
+                    </Link>
                     {LINKS.map(link => {
                         const active = isActive(pathname, link.href);
                         return (

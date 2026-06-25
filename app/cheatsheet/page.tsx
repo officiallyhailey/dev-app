@@ -367,11 +367,11 @@ function AttachmentPreview({ attachments }: { attachments: any[] }) {
                             {att.type ?? 'File'}{att.size ? ` · ${(att.size / 1024).toFixed(1)} KB` : ''}
                         </div>
                     </div>
-                    <a href={att.url} target="_blank" rel="noopener noreferrer"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', borderRadius: '9999px', background: 'var(--surface)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)', color: ACCENT_DEEP, fontSize: '11px', fontWeight: 700, textDecoration: 'none', flexShrink: 0, transition: 'background 0.12s' }}
+                    <a href={att.url} target="_blank" rel="noopener noreferrer" title="Open file" aria-label="Open file"
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', borderRadius: '8px', background: 'var(--surface)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)', color: ACCENT_DEEP, textDecoration: 'none', flexShrink: 0, transition: 'background 0.12s' }}
                         onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'var(--surface-2)'}
                         onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'var(--surface)'}>
-                        <ArrowUpRightIcon size={11} weight="bold" /> Open file
+                        <ArrowUpRightIcon size={13} weight="bold" />
                     </a>
                 </div>
             </div>
@@ -547,11 +547,11 @@ function CheatSheetDetail({ record, table, onClose, query = '' }: { record: any;
                         )}
                     </div>
                     {link && (
-                        <a href={link} target="_blank" rel="noopener noreferrer"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 16px', borderRadius: '5px', flexShrink: 0, background: ACCENT, color: ACCENT_TEXT, fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none', border: `1.5px solid ${INK}`, transition: 'background 0.1s' }}
+                        <a href={link} target="_blank" rel="noopener noreferrer" title="Open link" aria-label="Open link"
+                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '5px', flexShrink: 0, background: ACCENT, color: ACCENT_TEXT, textDecoration: 'none', border: `1.5px solid ${INK}`, transition: 'background 0.1s' }}
                             onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DEEP}
                             onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = ACCENT}>
-                            View Link <ArrowUpRightIcon size={13} weight="bold" />
+                            <ArrowUpRightIcon size={14} weight="bold" />
                         </a>
                     )}
                 </div>

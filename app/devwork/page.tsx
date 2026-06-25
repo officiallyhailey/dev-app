@@ -139,6 +139,9 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
     const [saving,   setSaving]   = useState(false);
     const [saved,    setSaved]    = useState(false);
     const [saveError, setSaveError] = useState('');
+    // Empty-but-editable fields start collapsed behind an "+ Add" affordance.
+    const [editLink,  setEditLink]  = useState(!!originalLink);
+    const [editNotes, setEditNotes] = useState(!!originalNotes);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const notesRef     = React.useRef<HTMLTextAreaElement>(null);
 
@@ -203,6 +206,18 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
         fontFamily: 'inherit', boxSizing: 'border-box' as const, transition: 'border-color 0.15s',
     };
 
+    // Subtler field label (less "spec-table" than the mono SectionLabel)
+    const fieldLabel: React.CSSProperties = {
+        fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)',
+        letterSpacing: '0.02em', marginBottom: '7px',
+    };
+    // Click-to-expand affordance for empty editable fields
+    const addBtnStyle: React.CSSProperties = {
+        display: 'inline-flex', alignItems: 'center', gap: '7px', width: '100%', boxSizing: 'border-box',
+        padding: '11px 14px', borderRadius: '6px', background: 'var(--surface-2)',
+        border: '1.5px dashed var(--ink-line)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+    };
+
     // Brutalist mono tag (languages)
     const tagStyle: React.CSSProperties = {
         fontFamily: MONO, fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
@@ -240,88 +255,98 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
                                     <CalendarIcon size={11} weight="bold" /> {formatDate(created)}
                                 </div>
                             )}
-                            {langsVal.length > 0 && (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
-                                    {langsVal.map(l => <span key={l} style={tagStyle}>{l}</span>)}
-                                </div>
-                            )}
                         </div>
                     </div>
 
-                    {/* Languages — dropdown multi-select */}
-                    {langChoices.length > 0 && (
-                        <div>
-                            <SectionLabel text="Languages" />
-                            {/* Selected badges */}
-                            {langsVal.length > 0 && (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
-                                    {langsVal.map(lang => (
-                                        <span key={lang} style={{ ...tagStyle, display: 'inline-flex', alignItems: 'center', gap: '6px', paddingRight: '6px' }}>
-                                            {lang}
-                                            <span onClick={() => toggleLang(lang)}
-                                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', borderRadius: '3px', cursor: 'pointer', color: ACCENT_DEEP, background: 'rgba(35,38,46,0.06)', flexShrink: 0 }}>
-                                                <XIcon size={9} weight="bold" />
+                    {/* Languages + Link — two fields per row on desktop, inputs bottom-aligned */}
+                    <div style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', gap: '18px', alignItems: 'stretch' }}>
+                        {langChoices.length > 0 && (
+                            <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                                <div style={fieldLabel}>Languages</div>
+                                {langsVal.length > 0 && (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                                        {langsVal.map(lang => (
+                                            <span key={lang} style={{ ...tagStyle, display: 'inline-flex', alignItems: 'center', gap: '6px', paddingRight: '6px' }}>
+                                                {lang}
+                                                <span onClick={() => toggleLang(lang)}
+                                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', borderRadius: '3px', cursor: 'pointer', color: ACCENT_DEEP, background: 'rgba(35,38,46,0.06)', flexShrink: 0 }}>
+                                                    <XIcon size={9} weight="bold" />
+                                                </span>
                                             </span>
-                                        </span>
+                                        ))}
+                                    </div>
+                                )}
+                                <select
+                                    value=""
+                                    onChange={e => { if (e.target.value) toggleLang(e.target.value); }}
+                                    style={{ width: '100%', padding: '10px 36px 10px 14px', fontSize: '13px', color: langsVal.length === langChoices.length ? 'var(--text-muted)' : 'var(--text-primary)', background: 'var(--surface-2)', border: '1.5px solid var(--ink-line)', borderRadius: '6px', outline: 'none', fontFamily: 'inherit', appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer', boxSizing: 'border-box' as const, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8678' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}>
+                                    <option value="" disabled>{langsVal.length === langChoices.length ? 'All languages selected' : '+ Add language…'}</option>
+                                    {langChoices.filter(l => !langsVal.includes(l)).map(lang => (
+                                        <option key={lang} value={lang}>{lang}</option>
                                     ))}
-                                </div>
-                            )}
-                            {/* Dropdown */}
-                            <select
-                                value=""
-                                onChange={e => { if (e.target.value) toggleLang(e.target.value); }}
-                                style={{ width: '100%', padding: '10px 36px 10px 14px', fontSize: '13px', color: langsVal.length === langChoices.length ? 'var(--text-muted)' : 'var(--text-primary)', background: 'var(--surface-2)', border: '1.5px solid var(--ink-line)', borderRadius: '6px', outline: 'none', fontFamily: 'inherit', appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer', boxSizing: 'border-box' as const, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8678' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}>
-                                <option value="" disabled>{langsVal.length === langChoices.length ? 'All languages selected' : '+ Add language…'}</option>
-                                {langChoices.filter(l => !langsVal.includes(l)).map(lang => (
-                                    <option key={lang} value={lang}>{lang}</option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
+                                </select>
+                            </div>
+                        )}
 
-                    {/* Editable link */}
+                        <div style={{ flex: 1, minWidth: 0, width: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <div style={fieldLabel}>Link</div>
+                            <div style={{ marginTop: 'auto' }}>
+                                {editLink ? (
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                        <input
+                                            type="url"
+                                            value={linkVal}
+                                            onChange={e => setLinkVal(e.target.value)}
+                                            placeholder="https://…"
+                                            autoFocus={!originalLink}
+                                            style={fieldInputStyle}
+                                            onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
+                                            onBlur={e  => (e.currentTarget.style.borderColor = 'var(--ink-line)')}
+                                        />
+                                        {linkVal && (
+                                            <a href={linkVal} target="_blank" rel="noopener noreferrer" title="Open link"
+                                                style={{ width: '42px', height: '42px', borderRadius: '6px', flexShrink: 0, background: ACCENT, border: `1.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'background 0.1s' }}
+                                                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DEEP}
+                                                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = ACCENT}>
+                                                <ArrowUpRightIcon size={14} color={ACCENT_TEXT} weight="bold" />
+                                            </a>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div onClick={() => setEditLink(true)} style={addBtnStyle}>
+                                        <PlusIcon size={13} weight="bold" /> Add link
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Editable notes (collapsed when empty) */}
                     <div>
-                        <SectionLabel text="Link" />
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            <input
-                                type="url"
-                                value={linkVal}
-                                onChange={e => setLinkVal(e.target.value)}
-                                placeholder="https://…"
-                                style={fieldInputStyle}
+                        <div style={fieldLabel}>Notes</div>
+                        {editNotes ? (
+                            <textarea
+                                ref={notesRef}
+                                value={notesVal}
+                                onChange={e => setNotesVal(e.target.value)}
+                                placeholder="Add notes…"
+                                rows={1}
+                                autoFocus={!originalNotes}
+                                style={{ ...fieldInputStyle, resize: 'none' as const, overflow: 'hidden', minHeight: '110px', lineHeight: 1.7 }}
                                 onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
                                 onBlur={e  => (e.currentTarget.style.borderColor = 'var(--ink-line)')}
                             />
-                            {linkVal && (
-                                <a href={linkVal} target="_blank" rel="noopener noreferrer"
-                                    style={{ width: '42px', height: '42px', borderRadius: '6px', flexShrink: 0, background: ACCENT, border: `1.5px solid ${INK}`, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'background 0.1s' }}
-                                    onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DEEP}
-                                    onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = ACCENT}>
-                                    <ArrowUpRightIcon size={16} color={ACCENT_TEXT} weight="bold" />
-                                </a>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Editable notes — always visible */}
-                    <div>
-                        <SectionLabel text="Notes" />
-                        <textarea
-                            ref={notesRef}
-                            value={notesVal}
-                            onChange={e => setNotesVal(e.target.value)}
-                            placeholder="Add notes…"
-                            rows={1}
-                            style={{ ...fieldInputStyle, resize: 'none' as const, overflow: 'hidden', minHeight: '110px', lineHeight: 1.7 }}
-                            onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
-                            onBlur={e  => (e.currentTarget.style.borderColor = 'var(--ink-line)')}
-                        />
+                        ) : (
+                            <div onClick={() => setEditNotes(true)} style={addBtnStyle}>
+                                <PlusIcon size={13} weight="bold" /> Add notes
+                            </div>
+                        )}
                     </div>
 
                     {/* Attachments — existing + file upload */}
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                            <SectionLabel text={attachments.length > 0 ? `Attachments (${attachments.length})` : 'Attachments'} />
+                            <div style={{ ...fieldLabel, marginBottom: 0 }}>{attachments.length > 0 ? `Attachments (${attachments.length})` : 'Attachments'}</div>
                             {/* Hidden native file input */}
                             <input
                                 ref={fileInputRef}

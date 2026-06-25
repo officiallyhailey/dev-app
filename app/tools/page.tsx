@@ -9,7 +9,7 @@ import { HelpButton } from '@/lib/components/InfoModal';
 import { LiveField } from '@/lib/components/LiveField';
 type Field = any;
 type FieldConfig = any;
-import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, CaretRightIcon, HouseIcon, SquaresFourIcon, PlusIcon } from '@phosphor-icons/react';
+import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, ArrowLeftIcon, CaretRightIcon, SquaresFourIcon, PlusIcon } from '@phosphor-icons/react';
 
 const ACCENT      = '#F5C13D'; // amber primary
 const ACCENT_DEEP = '#E3A81B'; // darker amber (tags / icons on tint)
@@ -315,7 +315,8 @@ function HomeView({ visibleRecords, recentRecords, allCategories, categoryMap, n
     onSelectRecord: (r: any) => void; onSelectCategory: (c: string) => void; onViewAll: () => void;
 }) {
     return (
-        <div style={{ overflowY: 'auto', flex: 1, padding: '8px 28px 32px', display: 'flex', flexDirection: 'column', gap: '26px' }}>
+        <div style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px clamp(16px, 3vw, 32px) 40px' }}>
+          <div style={{ width: '100%', maxWidth: '1080px', display: 'flex', flexDirection: 'column', gap: '26px' }}>
             {/* Masthead */}
             <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '8px 0', borderBottom: '1.5px solid var(--ink-line)' }}>
@@ -356,6 +357,7 @@ function HomeView({ visibleRecords, recentRecords, allCategories, categoryMap, n
                     </div>
                 </div>
             )}
+          </div>
         </div>
     );
 }
@@ -614,43 +616,38 @@ function ToolsApp(): React.ReactElement {
 
                 {/* Top utility bar */}
                 <div style={{ padding: isNarrow ? '10px 12px' : '12px 28px', display: 'flex', alignItems: 'center', gap: isNarrow ? '8px' : '16px', flexWrap: 'wrap', flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
-                    {!isNarrow && (
-                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                            <span style={{ ...monoLabel, fontSize: '11px', color: 'var(--text-primary)' }}>{table.name} / DIR</span>
+                    {/* Search + nav — grouped together on the right, in one line */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', flexShrink: 0, width: isNarrow ? '100%' : 'auto', marginLeft: isNarrow ? 0 : 'auto', justifyContent: 'flex-end' }}>
+                        {/* Search (fixed width) */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', width: isNarrow ? '100%' : '260px', flex: isNarrow ? '1 1 100%' : '0 0 260px' }}>
+                            <MagnifyingGlassIcon size={14} color="var(--text-muted)" weight="bold" />
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="SEARCH…"
+                                style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', background: 'transparent', fontSize: '12px', color: 'var(--text-primary)', fontFamily: MONO, letterSpacing: '0.04em' }} />
+                            {search && (
+                                <div onClick={() => setSearch('')} style={{ width: '18px', height: '18px', borderRadius: '4px', background: 'var(--surface-2)', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0 }}>
+                                    <XIcon size={9} weight="bold" />
+                                </div>
+                            )}
                         </div>
-                    )}
-
-                    {/* Nav (square) */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {[
-                            { key: 'home', label: 'Home',     icon: <HouseIcon size={13} weight="bold" />,       active: view === 'home' && !isSearching, onClick: () => { setView('home'); setSearch(''); } },
-                            { key: 'all',  label: 'View All', icon: <SquaresFourIcon size={13} weight="bold" />, active: view === 'all'  && !isSearching, onClick: () => { setView('all');  setSearch(''); } },
-                        ].map(item => (
-                            <div key={item.key} onClick={item.onClick}
-                                style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '8px 14px', borderRadius: '5px', cursor: 'pointer', userSelect: 'none', fontFamily: MONO, textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'background 0.12s', border: '1.5px solid var(--ink-line)', background: item.active ? INK : 'var(--surface)', color: item.active ? '#fff' : 'var(--text-muted)' }}
-                                onMouseEnter={e => { if (!item.active) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'; }}
-                                onMouseLeave={e => { if (!item.active) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'; }}>
-                                <span style={{ display: 'flex' }}>{item.icon}</span>
-                                <span style={{ fontSize: '11px', fontWeight: 700 }}>{item.label}</span>
+                        {(view !== 'home' || isSearching) && (
+                            <div onClick={() => { setView('home'); setActiveCategory(null); setSearch(''); }} title="Back" aria-label="Back"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '36px', borderRadius: '5px', cursor: 'pointer', border: '1.5px solid var(--ink-line)', background: 'var(--surface)', color: 'var(--text-primary)' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'}
+                                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'}>
+                                <ArrowLeftIcon size={15} weight="bold" />
                             </div>
-                        ))}
+                        )}
+                        <div onClick={() => { setView('all'); setSearch(''); }} title="View all" aria-label="View all"
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '36px', borderRadius: '5px', cursor: 'pointer', border: '1.5px solid var(--ink-line)', background: (view === 'all' && !isSearching) ? INK : 'var(--surface)', color: (view === 'all' && !isSearching) ? '#fff' : 'var(--text-primary)' }}
+                            onMouseEnter={e => { if (!(view === 'all' && !isSearching)) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'; }}
+                            onMouseLeave={e => { if (!(view === 'all' && !isSearching)) (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)'; }}>
+                            <SquaresFourIcon size={15} weight="bold" />
+                        </div>
                         <div onClick={() => setShowNew(true)}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 14px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}`, fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', userSelect: 'none' }}>
                             <PlusIcon size={13} weight="bold" /> New
                         </div>
                         <HelpButton page="tools" />
-                    </div>
-
-                    {/* Search (square) */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', width: isNarrow ? '100%' : '240px', flex: isNarrow ? '1 1 100%' : '0 0 240px' }}>
-                        <MagnifyingGlassIcon size={14} color="var(--text-muted)" weight="bold" />
-                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="SEARCH…"
-                            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '12px', color: 'var(--text-primary)', fontFamily: MONO, letterSpacing: '0.04em' }} />
-                        {search && (
-                            <div onClick={() => setSearch('')} style={{ width: '18px', height: '18px', borderRadius: '4px', background: 'var(--surface-2)', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0 }}>
-                                <XIcon size={9} weight="bold" />
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -676,13 +673,16 @@ function ToolsApp(): React.ReactElement {
                     ) : (
                         <>
                             {/* Content header */}
-                            <div style={{ padding: '14px 28px 12px', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
-                                <span style={{ fontFamily: MONO, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{contentTitle}</span>
-                                <span style={{ ...monoLabel, color: ACCENT_DEEP }}>[{String(displayedRecords.length).padStart(2, '0')}]</span>
+                            <div style={{ flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
+                                <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', padding: '14px clamp(16px, 3vw, 32px) 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <span style={{ fontFamily: MONO, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{contentTitle}</span>
+                                    <span style={{ ...monoLabel, color: ACCENT_DEEP }}>[{String(displayedRecords.length).padStart(2, '0')}]</span>
+                                </div>
                             </div>
 
                             {/* Card grid */}
-                            <div style={{ overflowY: 'auto', flex: 1, padding: '18px 28px 28px' }}>
+                            <div style={{ overflowY: 'auto', overflowX: 'hidden', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px clamp(16px, 3vw, 32px) 32px' }}>
+                              <div style={{ width: '100%', maxWidth: '1080px' }}>
                                 {displayedRecords.length === 0 ? (
                                     <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)', ...monoLabel, fontSize: '11px' }}>
                                         {isSearching ? 'No tools match your search.' : 'No tools in this category.'}
@@ -705,6 +705,7 @@ function ToolsApp(): React.ReactElement {
                                         ))}
                                     </div>
                                 )}
+                              </div>
                             </div>
                         </>
                     )}

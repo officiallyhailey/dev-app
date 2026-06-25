@@ -26,13 +26,21 @@ export function ScrollProgress() {
             setAtBottom(max > 8 && p >= 0.995);
         };
 
+        // Coalesce to one measurement per animation frame so the bar stays glued
+        // to the scroll position without layout thrash or visible lag.
+        let frame = 0;
+        const schedule = (el: HTMLElement | null) => {
+            if (frame) return;
+            frame = requestAnimationFrame(() => { frame = 0; measure(el); });
+        };
+
         const onScroll = (e: Event) => {
             const t = e.target as Node | null;
             // Window/document scroll reports `document` as the target.
             if (!t || t === document || t === document.documentElement || t === document.body) {
-                measure(null);
+                schedule(null);
             } else if (t instanceof HTMLElement) {
-                measure(t);
+                schedule(t);
             }
         };
         const onResize = () => measure(null);
@@ -44,6 +52,7 @@ export function ScrollProgress() {
         window.addEventListener('scroll', onScroll, { capture: true, passive: true });
         window.addEventListener('resize', onResize);
         return () => {
+            if (frame) cancelAnimationFrame(frame);
             window.removeEventListener('scroll', onScroll, { capture: true });
             window.removeEventListener('resize', onResize);
         };
@@ -51,7 +60,7 @@ export function ScrollProgress() {
 
     return (
         <div aria-hidden style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '8px', zIndex: 2000, pointerEvents: 'none' }}>
-            <div style={{ position: 'relative', height: '100%', width: `${progress * 100}%`, background: 'var(--accent)', transition: 'width 0.08s linear' }}>
+            <div style={{ position: 'relative', height: '100%', width: `${progress * 100}%`, background: 'var(--accent)' }}>
                 {atBottom && (
                     <span className="dd-ping" style={{ position: 'absolute', right: 0, top: '50%', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', transform: 'translate(50%, -50%)' }} />
                 )}

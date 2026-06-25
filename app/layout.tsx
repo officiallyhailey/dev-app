@@ -21,6 +21,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
     width: 'device-width',
     initialScale: 1,
+    // Keep the whole page in view: stop iOS from zooming when a field is focused
+    // and the keyboard appears.
+    maximumScale: 1,
+    userScalable: false,
     viewportFit: 'cover',
     themeColor: [
         { media: '(prefers-color-scheme: light)', color: '#f4f4f5' },

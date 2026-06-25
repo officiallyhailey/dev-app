@@ -242,17 +242,15 @@ function JobModal({record, table, onClose}: {record: AirtableRecord; table: Tabl
 
                     {/* View link */}
                     {linkVal ? (
-                        <a href={linkVal} target="_blank" rel="noopener noreferrer"
-                            style={{display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '4px', alignSelf: 'flex-start', background: `linear-gradient(145deg, ${ACCENT_MID}, ${ACCENT})`, color: ACCENT_TEXT, fontSize: '13px', fontWeight: 600, textDecoration: 'none', letterSpacing: '0.02em', boxShadow: `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`, transition: 'box-shadow 0.15s, transform 0.1s'}}
-                            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = `2px 2px 6px rgba(245,193,61,0.4)`; (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(0.98)'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`; (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1)'; }}>
+                        <a href={linkVal} target="_blank" rel="noopener noreferrer" title="Open link" aria-label="Open link"
+                            style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '42px', height: '42px', borderRadius: '4px', alignSelf: 'flex-start', background: `linear-gradient(145deg, ${ACCENT_MID}, ${ACCENT})`, color: ACCENT_TEXT, textDecoration: 'none', boxShadow: `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`, transition: 'transform 0.1s'}}
+                            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(0.96)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1)'; }}>
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#2c2510" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                            View Link
                         </a>
                     ) : (
-                        <span style={{display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '4px', alignSelf: 'flex-start', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600}}>
+                        <span title="No link available" style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '42px', height: '42px', borderRadius: '4px', alignSelf: 'flex-start', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', color: 'var(--text-muted)', opacity: 0.6}}>
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                            No Link Available
                         </span>
                     )}
 
