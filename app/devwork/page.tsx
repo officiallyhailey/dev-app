@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useBase, useRecords, AirtableBoundary } from '@/lib/airtable/hooks';
 import { useIsNarrow } from '@/lib/useIsNarrow';
+import { modalOverlayStyle, modalCardStyle } from '@/lib/components/modalStyle';
+import { HelpButton } from '@/lib/components/InfoModal';
 import { Shell } from '@/lib/components/Shell';
 import {
     CodeIcon,
@@ -12,6 +14,7 @@ import {
     PaperclipIcon,
     FileIcon,
     CalendarIcon,
+    PlusIcon,
 } from '@phosphor-icons/react';
 
 // ── Field IDs ─────────────────────────────────────────────────────────────────
@@ -107,6 +110,7 @@ function NeuButton({ children, href, onClick, accent }: {
 
 // ── Detail Modal ──────────────────────────────────────────────────────────────
 function DevModal({ record, table, onClose }: { record: any; table: any; onClose: () => void }) {
+    const isNarrow     = useIsNarrow();
     const titleField   = table.getFieldIfExists(TITLE_ID);
     const langField    = table.getFieldIfExists(LANGUAGE_ID);
     const linkField    = table.getFieldIfExists(LINK_ID);
@@ -207,8 +211,8 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
     };
 
     return (
-        <div onClick={onClose} style={{ position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
-            <div onClick={e => e.stopPropagation()} style={{ position: 'relative', width: 'min(940px, 94vw)', maxHeight: '88vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', borderRadius: '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)' }}>
+        <div onClick={onClose} style={{ ...modalOverlayStyle(isNarrow), background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)' }}>
+            <div onClick={e => e.stopPropagation()} style={{ ...modalCardStyle(isNarrow), borderRadius: isNarrow ? 0 : '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)' }}>
                 <CornerBrackets inset={10} size={12} />
 
                 {/* Top rule */}
@@ -555,6 +559,118 @@ function FeaturedCard({ record, table, onClick }: { record: any; table: any; onC
     );
 }
 
+// ── New project form (manual fields; Dev Work has no AI) ──────────────────────
+function NewProjectForm({ table, onClose }: { table: any; onClose: () => void }) {
+    const isNarrow    = useIsNarrow();
+    const titleField  = table.getFieldIfExists(TITLE_ID);
+    const langField   = table.getFieldIfExists(LANGUAGE_ID);
+    const linkField   = table.getFieldIfExists(LINK_ID);
+    const notesField  = table.getFieldIfExists(NOTES_ID);
+    const attachField = table.getFieldIfExists(ATTACHMENT_ID);
+    const langChoices: string[] = ((langField?.config as any)?.options?.choices ?? []).map((c: any) => c.name);
+
+    const [title, setTitle] = useState('');
+    const [langs, setLangs] = useState<string[]>([]);
+    const [link, setLink]   = useState('');
+    const [notes, setNotes] = useState('');
+    const [files, setFiles] = useState<File[]>([]);
+    const [saving, setSaving] = useState(false);
+    const [error, setError]   = useState('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const toggleLang = (l: string) => setLangs(prev => prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l]);
+
+    useEffect(() => {
+        const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', h);
+        return () => window.removeEventListener('keydown', h);
+    }, [onClose]);
+
+    async function handleCreate() {
+        if (!title.trim()) { setError('A title is required.'); return; }
+        setSaving(true); setError('');
+        const fields: Record<string, any> = {};
+        if (titleField)                  fields[titleField.id]  = title.trim();
+        if (langField && langs.length)   fields[langField.id]   = langs.map(name => ({ name }));
+        if (linkField && link.trim())    fields[linkField.id]   = link.trim();
+        if (notesField && notes.trim())  fields[notesField.id]  = notes;
+        if (attachField && files.length) fields[attachField.id] = files.map(file => ({ file }));
+        try {
+            await table.createRecordAsync(fields);
+            onClose();
+        } catch (e: any) {
+            setError(e?.message ?? 'Could not create the project.');
+            setSaving(false);
+        }
+    }
+
+    const inputStyle: React.CSSProperties = { width: '100%', padding: '12px 14px', fontSize: '14px', color: 'var(--text-primary)', background: 'var(--surface)', border: '2px solid var(--text-primary)', borderRadius: 0, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
+    const labelStyle: React.CSSProperties = { ...monoLabel, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' };
+
+    return (
+        <div onClick={onClose} style={{ ...modalOverlayStyle(isNarrow), background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)' }}>
+            <div onClick={e => e.stopPropagation()} style={{ ...modalCardStyle(isNarrow), borderRadius: isNarrow ? 0 : '8px', background: 'var(--surface)', border: '2px solid var(--text-primary)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 18px', borderBottom: '2px solid var(--text-primary)', flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '20px', textTransform: 'uppercase', color: 'var(--text-primary)' }}>New Project</span>
+                    <div onClick={onClose} style={{ width: '30px', height: '30px', border: '2px solid var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)' }}><XIcon size={15} weight="bold" /></div>
+                </div>
+
+                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: isNarrow ? '18px 16px 24px' : '24px' }}>
+                    <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                        <div>
+                            <label style={labelStyle}>Title *</label>
+                            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Project title…" style={inputStyle} autoFocus />
+                        </div>
+                        {langChoices.length > 0 && (
+                            <div>
+                                <label style={labelStyle}>Languages</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+                                    {langChoices.map(l => {
+                                        const active = langs.includes(l);
+                                        return <span key={l} onClick={() => toggleLang(l)} style={{ cursor: 'pointer', userSelect: 'none', ...monoLabel, padding: '7px 12px', border: '2px solid var(--text-primary)', background: active ? ACCENT : 'var(--surface)', color: active ? ACCENT_TEXT : 'var(--text-muted)' }}>{l}</span>;
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                        <div>
+                            <label style={labelStyle}>Link</label>
+                            <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={inputStyle} />
+                        </div>
+                        <div>
+                            <label style={labelStyle}>Notes</label>
+                            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={5} placeholder="Write notes…" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+                        </div>
+                        <div>
+                            <label style={labelStyle}>Attachments</label>
+                            <input ref={fileInputRef} type="file" multiple onChange={e => { const f = Array.from(e.target.files ?? []); if (f.length) setFiles(prev => [...prev, ...f]); if (fileInputRef.current) fileInputRef.current.value = ''; }} style={{ display: 'none' }} />
+                            <div onClick={() => fileInputRef.current?.click()} style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                                <PaperclipIcon size={15} weight="bold" /> {files.length ? 'Add more files…' : 'Upload files…'}
+                            </div>
+                            {files.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                                    {files.map((f, i) => (
+                                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '6px 10px', border: '2px solid var(--text-primary)', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', maxWidth: '220px' }}>
+                                            <FileIcon size={13} weight="bold" />
+                                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                                            <span onClick={e => { e.stopPropagation(); setFiles(prev => prev.filter((_, j) => j !== i)); }} style={{ cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}><XIcon size={11} weight="bold" /></span>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {error && <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: 600 }}>{error}</div>}
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', padding: '14px 18px', borderTop: '2px solid var(--text-primary)', flexShrink: 0 }}>
+                    <div onClick={onClose} style={{ padding: '10px 18px', border: '2px solid var(--text-primary)', background: 'var(--surface)', color: 'var(--text-muted)', ...monoLabel, cursor: 'pointer', userSelect: 'none' }}>Cancel</div>
+                    <div onClick={() => { if (!saving) handleCreate(); }} style={{ padding: '10px 22px', border: '2px solid var(--text-primary)', background: ACCENT, color: ACCENT_TEXT, ...monoLabel, cursor: saving ? 'wait' : 'pointer', userSelect: 'none', opacity: saving ? 0.7 : 1 }}>{saving ? 'Creating…' : 'Create project'}</div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 function DevWorkGrid(): React.ReactElement {
     const isNarrow = useIsNarrow();
@@ -565,6 +681,7 @@ function DevWorkGrid(): React.ReactElement {
     const [search, setSearch]     = useState('');
     const [filter, setFilter]     = useState<string>('all');
     const [selected, setSelected] = useState<any>(null);
+    const [showNew, setShowNew]   = useState(false);
 
     if (!table) return <div style={{ padding: '24px' }}>No table found.</div>;
 
@@ -722,6 +839,11 @@ function DevWorkGrid(): React.ReactElement {
                                 style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'inherit' }} />
                             {search && <XIcon size={12} weight="bold" color="var(--text-muted)" style={{ cursor: 'pointer' }} onClick={() => setSearch('')} />}
                         </div>
+                        <HelpButton page="devwork" />
+                        <div onClick={() => setShowNew(true)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', cursor: 'pointer', background: ACCENT, color: ACCENT_TEXT, border: `2px solid ${INK}`, ...monoLabel, fontSize: '11px', userSelect: 'none' }}>
+                            <PlusIcon size={14} weight="bold" /> New
+                        </div>
                     </div>
 
                     {/* Grid */}
@@ -747,6 +869,9 @@ function DevWorkGrid(): React.ReactElement {
 
             {selected && (
                 <DevModal record={selected} table={table} onClose={() => setSelected(null)} />
+            )}
+            {showNew && (
+                <NewProjectForm table={table} onClose={() => setShowNew(false)} />
             )}
         </>
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { TopNav } from './TopNav';
 import { ScrollProgress } from './ScrollProgress';
 
@@ -10,12 +10,11 @@ import { ScrollProgress } from './ScrollProgress';
  * (not 100vh) so it fills the area left below the nav.
  */
 export function Shell({ children }: { children: React.ReactNode }) {
-    const mainRef = useRef<HTMLElement | null>(null);
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', background: 'var(--page)' }}>
-            <ScrollProgress targetRef={mainRef} />
+            <ScrollProgress />
             <TopNav />
-            <main ref={mainRef} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
+            <main style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
                 {children}
             </main>
         </div>

@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useBase, useRecords, AirtableBoundary } from '@/lib/airtable/hooks';
 import { Shell } from '@/lib/components/Shell';
 import { useIsNarrow } from '@/lib/useIsNarrow';
+import { modalOverlayStyle, modalCardStyle } from '@/lib/components/modalStyle';
+import { HelpButton } from '@/lib/components/InfoModal';
 import { BookOpenIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowLeftIcon, ArrowRightIcon, CaretRightIcon, PaperclipIcon, FileIcon, LinkIcon, ListBulletsIcon, PlusIcon } from '@phosphor-icons/react';
 
 const ACCENT      = '#F5C13D'; // amber primary
@@ -617,9 +619,9 @@ function CheatSheetDetail({ record, table, onClose }: { record: any; table: any;
     }, [onClose]);
 
     return (
-        <div onClick={onClose} style={{ position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+        <div onClick={onClose} style={{ ...modalOverlayStyle(isNarrow), background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)' }}>
             <div onClick={e => e.stopPropagation()}
-                style={{ position: 'relative', width: 'min(1040px, 94vw)', ...(showToggle ? { height: '88vh' } : { maxHeight: '88vh' }), display: 'flex', flexDirection: 'column', borderRadius: '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)', overflow: 'hidden' }}>
+                style={{ ...modalCardStyle(isNarrow), ...(!isNarrow && showToggle ? { height: '88vh', maxHeight: '88vh' } : {}), borderRadius: isNarrow ? 0 : '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)' }}>
                 <CornerBrackets inset={10} size={12} />
 
                 {/* Top rule */}
@@ -1247,8 +1249,9 @@ function CheatSheetsApp(): React.ReactElement {
                         <span style={{ ...monoLabel, fontSize: '11px', color: 'var(--text-primary)' }}>Cheat_Sheets / Search</span>
                     </div>
 
-                    {/* Home / New toggle (square) */}
+                    {/* Help + Home / New toggle (square) */}
                     <div style={{ display: 'flex', gap: '8px' }}>
+                        <HelpButton page="cheatsheet" />
                         {(['home', 'new'] as const).map(m => {
                             const active = mode === m;
                             return (

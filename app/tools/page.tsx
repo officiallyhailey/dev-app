@@ -4,9 +4,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useBase, useRecords, AirtableBoundary, FieldType } from '@/lib/airtable/hooks';
 import { Shell } from '@/lib/components/Shell';
 import { useIsNarrow } from '@/lib/useIsNarrow';
+import { modalOverlayStyle, modalCardStyle } from '@/lib/components/modalStyle';
+import { HelpButton } from '@/lib/components/InfoModal';
+import { LiveField } from '@/lib/components/LiveField';
 type Field = any;
 type FieldConfig = any;
-import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, CaretRightIcon, HouseIcon, SquaresFourIcon } from '@phosphor-icons/react';
+import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, CaretRightIcon, HouseIcon, SquaresFourIcon, PlusIcon } from '@phosphor-icons/react';
 
 const ACCENT      = '#F5C13D'; // amber primary
 const ACCENT_DEEP = '#E3A81B'; // darker amber (tags / icons on tint)
@@ -224,6 +227,7 @@ function fmtDate(ms: number): string {
 function ToolModal({ record, nameField, summaryField, linkField, orgField, categoryField, faviconField, createdField, onClose }: {
     record: any; nameField: any; summaryField: any; linkField: any; orgField: any; categoryField: any; faviconField: any; createdField: any; onClose: () => void;
 }) {
+    const isNarrow = useIsNarrow();
     const name     = nameField     ? record.getCellValueAsString(nameField)    : record.name;
     const org      = orgField      ? record.getCellValueAsString(orgField)     : '';
     const link     = linkField     ? record.getCellValueAsString(linkField)    : '';
@@ -240,9 +244,9 @@ function ToolModal({ record, nameField, summaryField, linkField, orgField, categ
     }, [onClose]);
 
     return (
-        <div onClick={onClose} style={{ position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+        <div onClick={onClose} style={{ ...modalOverlayStyle(isNarrow), background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)' }}>
             <div onClick={e => e.stopPropagation()}
-                style={{ position: 'relative', width: 'min(720px, 94vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', borderRadius: '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)', overflow: 'hidden' }}>
+                style={{ ...modalCardStyle(isNarrow), borderRadius: isNarrow ? 0 : '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)' }}>
                 <CornerBrackets inset={10} size={12} />
 
                 {/* Top rule */}

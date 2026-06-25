@@ -2,6 +2,8 @@
 
 import React, {useEffect, useState, useMemo, useRef} from 'react';
 import {useBase, useRecords, AirtableBoundary} from '@/lib/airtable/hooks';
+import {useIsNarrow} from '@/lib/useIsNarrow';
+import {modalOverlayStyle, modalCardStyle} from '@/lib/components/modalStyle';
 import {Shell} from '@/lib/components/Shell';
 import {Warning, X} from '@phosphor-icons/react';
 // These were SDK model types; the ported UI only uses them as loose annotations.
@@ -137,6 +139,7 @@ function NeuSelect({label, field, value, onChange}: {
 
 // ── Job Modal ─────────────────────────────────────────────────────────────────
 function JobModal({record, table, onClose}: {record: AirtableRecord; table: Table; onClose: () => void}) {
+    const isNarrow          = useIsNarrow();
     const displayRoleField  = table.getFieldIfExists('fldDbwjKDzYQNVUY9');
     const roleField         = table.getFieldIfExists('fldco5O5czDVfIKy3');
     const organizationField = table.getFieldIfExists('fldC0zsxhYswqv8xe');
@@ -197,8 +200,8 @@ function JobModal({record, table, onClose}: {record: AirtableRecord; table: Tabl
     const currentColor = statusColor[updateVal] ?? ACCENT_DEEP;
 
     return (
-        <div onClick={onClose} style={{position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'rgba(210,218,230,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px'}}>
-            <div onClick={e => e.stopPropagation()} style={{width: 'min(860px, 90vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', borderRadius: '0', background: 'var(--neu-bg)', boxShadow: 'var(--neu-modal)', overflow: 'hidden'}}>
+        <div onClick={onClose} style={{...modalOverlayStyle(isNarrow), zIndex: 9999, background: 'rgba(210,218,230,0.6)', backdropFilter: 'blur(6px)'}}>
+            <div onClick={e => e.stopPropagation()} style={{...modalCardStyle(isNarrow), background: 'var(--neu-bg)', border: '2px solid var(--text-primary)', boxShadow: 'var(--neu-modal)'}}>
 
                 {/* Header */}
                 <div style={{padding: '26px 28px 22px', borderBottom: '1px solid var(--divider)', display: 'flex', alignItems: 'flex-start', gap: '16px', flexShrink: 0}}>

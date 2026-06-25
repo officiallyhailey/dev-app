@@ -135,8 +135,8 @@ export default function Landing() {
                                 fontSize: 'clamp(40px, 10vw, 96px)', lineHeight: 0.98, letterSpacing: '0.005em',
                                 color: 'var(--text-primary)',
                             }}>
-                                <span style={{ display: 'block' }}>Everything</span>
-                                <span style={{ display: 'block' }}>you save,</span>
+                                <span style={{ display: 'block' }}>All your</span>
+                                <span style={{ display: 'block' }}>dev needs</span>
                                 <span style={{ display: 'inline-block', marginTop: '0.08em', background: 'var(--accent)', color: 'var(--accent-text)', padding: '0.04em 0.16em 0.1em' }}>one&nbsp;deck.</span>
                             </h1>
                             <p style={{ fontSize: isNarrow ? '14px' : '17px', lineHeight: 1.55, fontWeight: 500, color: 'var(--text-muted)', margin: isNarrow ? '12px auto 16px' : '20px 0 24px', maxWidth: '46ch' }}>

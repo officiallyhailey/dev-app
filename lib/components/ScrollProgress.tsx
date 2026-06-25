@@ -4,18 +4,19 @@ import React, { useEffect, useState } from 'react';
 
 /**
  * Fixed accent bar at the very top of the page showing scroll progress.
- * Tracks `window` by default, or a specific scroll container via `targetRef`
- * (the full-screen interfaces scroll an inner <main>, not the window).
- * The bar grows/shrinks as the user scrolls either direction, and emits a
- * small "ping" once they reach the bottom.
+ *
+ * A single capture-phase scroll listener on `window` catches scrolls from ANY
+ * container — the window itself (landing / about / login) or a nested scroll
+ * region (the full-screen interfaces scroll inner panels, not the window). The
+ * bar grows/shrinks as the user scrolls either direction and emits a small
+ * "ping" once they reach the bottom.
  */
-export function ScrollProgress({ targetRef }: { targetRef?: React.RefObject<HTMLElement | null> }) {
+export function ScrollProgress() {
     const [progress, setProgress] = useState(0);
     const [atBottom, setAtBottom] = useState(false);
 
     useEffect(() => {
-        const compute = () => {
-            const el = targetRef?.current;
+        const measure = (el: HTMLElement | null) => {
             const scrollTop = el ? el.scrollTop : window.scrollY;
             const scrollHeight = el ? el.scrollHeight : document.documentElement.scrollHeight;
             const clientHeight = el ? el.clientHeight : window.innerHeight;
@@ -25,21 +26,34 @@ export function ScrollProgress({ targetRef }: { targetRef?: React.RefObject<HTML
             setAtBottom(max > 8 && p >= 0.995);
         };
 
-        compute();
-        const scroller: Window | HTMLElement = targetRef?.current ?? window;
-        scroller.addEventListener('scroll', compute, { passive: true });
-        window.addEventListener('resize', compute);
-        return () => {
-            scroller.removeEventListener('scroll', compute);
-            window.removeEventListener('resize', compute);
+        const onScroll = (e: Event) => {
+            const t = e.target as Node | null;
+            // Window/document scroll reports `document` as the target.
+            if (!t || t === document || t === document.documentElement || t === document.body) {
+                measure(null);
+            } else if (t instanceof HTMLElement) {
+                measure(t);
+            }
         };
-    }, [targetRef]);
+        const onResize = () => measure(null);
+
+        measure(null);
+        // Capture phase is required: scroll events don't bubble, but they can be
+        // caught on the way down — this is what lets one listener track every
+        // nested scroll container on the page.
+        window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+        window.addEventListener('resize', onResize);
+        return () => {
+            window.removeEventListener('scroll', onScroll, { capture: true });
+            window.removeEventListener('resize', onResize);
+        };
+    }, []);
 
     return (
         <div aria-hidden style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '8px', zIndex: 2000, pointerEvents: 'none' }}>
             <div style={{ position: 'relative', height: '100%', width: `${progress * 100}%`, background: 'var(--accent)', transition: 'width 0.08s linear' }}>
                 {atBottom && (
-                    <span className="dd-ping" style={{ position: 'absolute', right: 0, top: '50%', width: '7px', height: '7px', borderRadius: '50%', background: 'var(--accent)', transform: 'translate(50%, -50%)' }} />
+                    <span className="dd-ping" style={{ position: 'absolute', right: 0, top: '50%', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', transform: 'translate(50%, -50%)' }} />
                 )}
             </div>
         </div>

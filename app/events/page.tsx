@@ -4,6 +4,8 @@ import React, {useState, useEffect, useMemo} from 'react';
 import {useBase, useRecords, AirtableBoundary} from '@/lib/airtable/hooks';
 import {Shell} from '@/lib/components/Shell';
 import {useIsNarrow} from '@/lib/useIsNarrow';
+import {modalOverlayStyle, modalCardStyle} from '@/lib/components/modalStyle';
+import {HelpButton} from '@/lib/components/InfoModal';
 // These were SDK model types; the ported UI only uses them as loose annotations.
 type AirtableRecord = any;
 type Table = any;
@@ -251,6 +253,7 @@ function Select({label, field, value, onChange}: {label: string; field: Field; v
 // ── Record form (create + edit) ───────────────────────────────────────────────
 function RecordForm({record, table, onClose, initialType}: {record: AirtableRecord | null; table: Table; onClose: () => void; initialType?: string}) {
     const isEdit = !!record;
+    const isNarrow = useIsNarrow();
 
     const typeField      = getField(table, F.type);
     const updateField    = getField(table, F.update);
@@ -346,8 +349,8 @@ function RecordForm({record, table, onClose, initialType}: {record: AirtableReco
     const hasSummary    = showEnriched && summaryField && record!.getCellValue(summaryField);
 
     return (
-        <div onClick={onClose} style={{position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 1000, background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px'}}>
-            <div onClick={e => e.stopPropagation()} style={{position: 'relative', width: 'min(640px, 94vw)', maxHeight: '90vh', display: 'flex', flexDirection: 'column', borderRadius: '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)', overflow: 'hidden'}}>
+        <div onClick={onClose} style={{...modalOverlayStyle(isNarrow), background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)'}}>
+            <div onClick={e => e.stopPropagation()} style={{...modalCardStyle(isNarrow), borderRadius: isNarrow ? 0 : '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)'}}>
                 <CornerBrackets inset={10} size={12} />
 
                 {/* Header — top rule */}
@@ -884,6 +887,9 @@ function EventsApp(): React.ReactElement {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Help */}
+                            <HelpButton page="events" />
 
                             {/* Add */}
                             <div onClick={openCreate}

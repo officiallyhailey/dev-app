@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { ScrollProgress } from '@/lib/components/ScrollProgress';
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 const DISPLAY = 'var(--font-display)';
@@ -52,6 +53,7 @@ function LoginForm() {
             backgroundSize: '40px 40px',
             fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         }}>
+            <ScrollProgress />
             <form onSubmit={submit} style={{
                 width: '100%', maxWidth: '380px', background: 'var(--surface)', border: '2px solid var(--text-primary)',
                 borderRadius: 0, padding: '30px 26px', boxShadow: '10px 10px 0 var(--text-primary)',
