@@ -105,7 +105,12 @@ export class TableModel {
                 Array.isArray(value) &&
                 value.some(v => (v as { file?: unknown })?.file instanceof File)
             ) {
-                uploads.push({ fieldId, files: value.map(v => (v as { file: File }).file) });
+                // Only upload the new File items; already-saved attachments in the
+                // array (plain {id,url,…} objects) stay on the record untouched.
+                const files = value
+                    .filter(v => (v as { file?: unknown })?.file instanceof File)
+                    .map(v => (v as { file: File }).file);
+                uploads.push({ fieldId, files });
             } else {
                 writeFields[fieldId] = f ? normalizeWrite(f.type, value) : value;
             }
