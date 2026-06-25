@@ -1,11 +1,10 @@
 'use client';
 
-import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
+import React, {useEffect, useState, useMemo, useRef} from 'react';
 import {useBase, useRecords, AirtableBoundary} from '@/lib/airtable/hooks';
 import {Shell} from '@/lib/components/Shell';
-import {Warning, X, CaretDown, CaretUp} from '@phosphor-icons/react';
+import {Warning, X} from '@phosphor-icons/react';
 // These were SDK model types; the ported UI only uses them as loose annotations.
-type Base = any;
 type Field = any;
 type Table = any;
 type AirtableRecord = any;
@@ -90,7 +89,7 @@ function NeuInput({label, value, onChange, multiline = false, type = 'text'}: {
     const insetStyle: React.CSSProperties = {
         width: '100%', padding: '10px 14px', fontSize: '13px',
         color: 'var(--text-primary)', background: 'var(--neu-bg)',
-        border: 'none', borderRadius: '12px', outline: 'none',
+        border: 'none', borderRadius: '4px', outline: 'none',
         fontFamily: 'inherit', resize: multiline ? 'vertical' as const : 'none' as const,
         boxShadow: 'var(--neu-inset)', boxSizing: 'border-box' as const,
         transition: 'box-shadow 0.15s',
@@ -123,7 +122,7 @@ function NeuSelect({label, field, value, onChange}: {
                 style={{
                     width: '100%', padding: '10px 36px 10px 14px', fontSize: '13px',
                     color: 'var(--text-primary)', background: 'var(--neu-bg)',
-                    border: 'none', borderRadius: '12px', outline: 'none',
+                    border: 'none', borderRadius: '4px', outline: 'none',
                     fontFamily: 'inherit', appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer',
                     boxShadow: 'var(--neu-inset)', boxSizing: 'border-box' as const,
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236e8f98' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
@@ -199,12 +198,12 @@ function JobModal({record, table, onClose}: {record: AirtableRecord; table: Tabl
 
     return (
         <div onClick={onClose} style={{position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'rgba(210,218,230,0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px'}}>
-            <div onClick={e => e.stopPropagation()} style={{width: 'min(860px, 90vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', borderRadius: '28px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-modal)', overflow: 'hidden'}}>
+            <div onClick={e => e.stopPropagation()} style={{width: 'min(860px, 90vw)', maxHeight: '88vh', display: 'flex', flexDirection: 'column', borderRadius: '0', background: 'var(--neu-bg)', boxShadow: 'var(--neu-modal)', overflow: 'hidden'}}>
 
                 {/* Header */}
                 <div style={{padding: '26px 28px 22px', borderBottom: '1px solid var(--divider)', display: 'flex', alignItems: 'flex-start', gap: '16px', flexShrink: 0}}>
                     {/* Briefcase icon */}
-                    <div style={{width: '50px', height: '50px', borderRadius: '16px', flexShrink: 0, background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                    <div style={{width: '50px', height: '50px', borderRadius: '4px', flexShrink: 0, background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                         <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke={TEAL} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
                         </svg>
@@ -219,14 +218,14 @@ function JobModal({record, table, onClose}: {record: AirtableRecord; table: Tabl
                                 {location}
                             </span>}
                             {updateVal && (
-                                <span style={{padding: '3px 12px', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, color: currentColor, background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset-sm)', letterSpacing: '0.02em'}}>
+                                <span style={{padding: '3px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, color: currentColor, background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset-sm)', letterSpacing: '0.02em'}}>
                                     {updateVal}
                                 </span>
                             )}
                         </div>
                     </div>
 
-                    <div onClick={onClose} style={{width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0, background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', transition: 'box-shadow 0.12s'}}
+                    <div onClick={onClose} style={{width: '34px', height: '34px', borderRadius: '4px', flexShrink: 0, background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', transition: 'box-shadow 0.12s'}}
                         onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--neu-inset-sm)'}
                         onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--neu-raised-sm)'}>
                         <X size={15} weight="bold" />
@@ -239,14 +238,14 @@ function JobModal({record, table, onClose}: {record: AirtableRecord; table: Tabl
                     {/* View link */}
                     {linkVal ? (
                         <a href={linkVal} target="_blank" rel="noopener noreferrer"
-                            style={{display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '14px', alignSelf: 'flex-start', background: `linear-gradient(145deg, ${ACCENT_MID}, ${ACCENT})`, color: ACCENT_TEXT, fontSize: '13px', fontWeight: 600, textDecoration: 'none', letterSpacing: '0.02em', boxShadow: `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`, transition: 'box-shadow 0.15s, transform 0.1s'}}
+                            style={{display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '4px', alignSelf: 'flex-start', background: `linear-gradient(145deg, ${ACCENT_MID}, ${ACCENT})`, color: ACCENT_TEXT, fontSize: '13px', fontWeight: 600, textDecoration: 'none', letterSpacing: '0.02em', boxShadow: `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`, transition: 'box-shadow 0.15s, transform 0.1s'}}
                             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = `2px 2px 6px rgba(245,193,61,0.4)`; (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(0.98)'; }}
                             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`; (e.currentTarget as HTMLAnchorElement).style.transform = 'scale(1)'; }}>
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#2c2510" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                             View Link
                         </a>
                     ) : (
-                        <span style={{display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '14px', alignSelf: 'flex-start', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600}}>
+                        <span style={{display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '4px', alignSelf: 'flex-start', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600}}>
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                             No Link Available
                         </span>
@@ -261,7 +260,7 @@ function JobModal({record, table, onClose}: {record: AirtableRecord; table: Tabl
                     {summary && (
                         <div>
                             <SectionLabel text="Summary" />
-                            <div style={{borderRadius: '16px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset)', padding: '18px'}}>
+                            <div style={{borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset)', padding: '18px'}}>
                                 <MarkdownText text={summary} />
                             </div>
                         </div>
@@ -279,12 +278,12 @@ function JobModal({record, table, onClose}: {record: AirtableRecord; table: Tabl
                         {saved && <span style={{fontSize: '13px', color: '#16a34a', fontWeight: 600}}>Saved ✓</span>}
                         {isDirty && (
                             <>
-                                <div onClick={onClose} style={{padding: '9px 18px', borderRadius: '12px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'box-shadow 0.12s'}}
+                                <div onClick={onClose} style={{padding: '9px 18px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'box-shadow 0.12s'}}
                                     onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--neu-inset-sm)'}
                                     onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--neu-raised-sm)'}>
                                     Discard
                                 </div>
-                                <div onClick={handleSave} style={{padding: '9px 20px', borderRadius: '12px', background: `linear-gradient(145deg, ${ACCENT_MID}, ${ACCENT})`, color: ACCENT_TEXT, fontSize: '13px', fontWeight: 600, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1, boxShadow: `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`, transition: 'opacity 0.15s, box-shadow 0.15s, transform 0.1s'}}
+                                <div onClick={handleSave} style={{padding: '9px 20px', borderRadius: '4px', background: `linear-gradient(145deg, ${ACCENT_MID}, ${ACCENT})`, color: ACCENT_TEXT, fontSize: '13px', fontWeight: 600, cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1, boxShadow: `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`, transition: 'opacity 0.15s, box-shadow 0.15s, transform 0.1s'}}
                                     onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = `2px 2px 6px rgba(245,193,61,0.4)`; (e.currentTarget as HTMLDivElement).style.transform = 'scale(0.98)'; }}
                                     onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`; (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)'; }}>
                                     {saving ? 'Saving…' : 'Save changes'}
@@ -317,7 +316,7 @@ function JobCard({record, table, onClick, isActive, isPinned}: {record: Airtable
 
     return (
         <div onClick={onClick}
-            style={{borderRadius: '14px', background: 'var(--neu-bg)', border: isActive ? `1.5px solid ${ACCENT}` : '1.5px solid var(--ink-line)', boxShadow: isPinned ? 'var(--neu-raised)' : 'var(--neu-raised-sm)', padding: isPinned ? '22px 20px' : '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px', cursor: 'pointer', transition: 'box-shadow 0.18s ease, border-color 0.18s, padding 0.18s ease'}}
+            style={{borderRadius: '4px', background: 'var(--neu-bg)', border: isActive ? `1.5px solid ${ACCENT}` : '1.5px solid var(--ink-line)', boxShadow: isPinned ? 'var(--neu-raised)' : 'var(--neu-raised-sm)', padding: isPinned ? '22px 20px' : '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px', cursor: 'pointer', transition: 'box-shadow 0.18s ease, border-color 0.18s, padding 0.18s ease'}}
             onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--neu-raised)'; }}
             onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLDivElement).style.boxShadow = isPinned ? 'var(--neu-raised)' : 'var(--neu-raised-sm)'; }}
         >
@@ -327,7 +326,7 @@ function JobCard({record, table, onClick, isActive, isPinned}: {record: Airtable
                     {org && <div style={{fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', fontWeight: 500}}>{org}</div>}
                 </div>
                 {updateName && (
-                    <span style={{padding: '2px 10px', borderRadius: '9999px', fontSize: '10px', fontWeight: 700, color: badgeColor, background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset-sm)', whiteSpace: 'nowrap', flexShrink: 0, letterSpacing: '0.02em'}}>
+                    <span style={{padding: '2px 10px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, color: badgeColor, background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset-sm)', whiteSpace: 'nowrap', flexShrink: 0, letterSpacing: '0.02em'}}>
                         {updateName}
                     </span>
                 )}
@@ -405,7 +404,7 @@ function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
                     </div>
                     {/* Active pin indicator */}
                     {pinnedRecordId && (
-                        <div style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px 6px 10px', borderRadius: '99px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset-sm)', flexShrink: 0, marginTop: '2px'}}>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px 6px 10px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset-sm)', flexShrink: 0, marginTop: '2px'}}>
                             <svg width="10" height="10" viewBox="0 0 24 24" fill={ACCENT}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                             <span style={{fontSize: '11px', fontWeight: 700, color: ACCENT_DEEP}}>Pin selected</span>
                             <div onClick={onClearPin} style={{width: '16px', height: '16px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)', marginLeft: '2px'}}
@@ -419,11 +418,11 @@ function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
 
                 {/* Search — hidden while a pin is active */}
                 {!pinnedRecordId && (
-                    <div style={{display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 14px', borderRadius: '14px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset)', marginBottom: '16px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 14px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-inset)', marginBottom: '16px'}}>
                         <svg width="14" height="14" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search roles…"
                             style={{flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'inherit'}} />
-                        {search && <div onClick={() => setSearch('')} style={{width: '20px', height: '20px', borderRadius: '6px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)'}}>
+                        {search && <div onClick={() => setSearch('')} style={{width: '20px', height: '20px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)'}}>
                             <X size={10} weight="bold" />
                         </div>}
                     </div>
@@ -433,7 +432,7 @@ function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
                 {!pinnedRecordId && (
                     <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px'}}>
                         {updateCounts.map(s => (
-                            <div key={s.name} style={{borderRadius: '14px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                            <div key={s.name} style={{borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '4px'}}>
                                 <span style={{fontSize: '22px', fontWeight: 800, color: s.color, lineHeight: 1}}>{s.count}</span>
                                 <span style={{fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.3, letterSpacing: '0.02em'}}>{s.name}</span>
                             </div>
@@ -443,7 +442,7 @@ function JobsPanel({records, table, pinnedRecordId, onClearPin}: {
 
                 {/* "Show all" button while pin is active */}
                 {pinnedRecordId && (
-                    <div onClick={onClearPin} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '14px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', marginBottom: '16px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600, transition: 'box-shadow 0.12s'}}
+                    <div onClick={onClearPin} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', marginBottom: '16px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600, transition: 'box-shadow 0.12s'}}
                         onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--neu-inset)'}
                         onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--neu-raised-sm)'}>
                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="9 6 3 12 9 18"/></svg>
@@ -503,6 +502,24 @@ function MapExtensionApp() {
         mq.addEventListener('change', update);
         return () => mq.removeEventListener('change', update);
     }, []);
+
+    // Mobile: show the map OR the list full-screen (toggle), not a cramped split.
+    // Default to the map so it mounts at full size (avoids the half-render bug).
+    const [mobileView, setMobileView] = useState<'map' | 'list'>('map');
+    // Mapbox renders into a stale, half-sized canvas unless told to resize when its
+    // container changes size (e.g. when the toggle reveals it). Observe + resize.
+    const mapWrapRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        const el = mapWrapRef.current;
+        if (!el) return;
+        const ro = new ResizeObserver(() => mapRef.current?.getMap?.()?.resize());
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+    useEffect(() => {
+        const t = setTimeout(() => mapRef.current?.getMap?.()?.resize(), 80);
+        return () => clearTimeout(t);
+    }, [mobileView, isNarrow]);
 
     // Mapbox token comes from an env var (was an Airtable custom property / secret).
     const mapboxApiKey = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? '';
@@ -568,6 +585,7 @@ function MapExtensionApp() {
             setPinnedRecordId(null);
         } else {
             setPinnedRecordId(location.id);
+            if (isNarrow) setMobileView('list'); // jump to the list to show the pinned job
         }
         if (zoomToPinOnClick) {
             const mapInstance = mapRef.current?.getMap?.();
@@ -591,8 +609,8 @@ function MapExtensionApp() {
     if (!isConfigured) {
         return (
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '60vh', background: 'var(--bg)', padding: '24px'}}>
-                <div style={{maxWidth: '480px', textAlign: 'center', background: 'var(--neu-bg)', borderRadius: '24px', padding: '36px', boxShadow: 'var(--neu-raised)'}}>
-                    <div style={{width: '52px', height: '52px', borderRadius: '16px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'}}>
+                <div style={{maxWidth: '480px', textAlign: 'center', background: 'var(--neu-bg)', borderRadius: '0', padding: '36px', boxShadow: 'var(--neu-raised)'}}>
+                    <div style={{width: '52px', height: '52px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'}}>
                         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke={TEAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     </div>
                     <h2 style={{margin: '0 0 10px', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)'}}>Map not configured</h2>
@@ -668,14 +686,29 @@ function MapExtensionApp() {
                             <Warning size={18} color="#d97706" />
                             <p style={{margin: 0, fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500}}>Map configuration warning</p>
                         </div>
-                        <div onClick={() => setIsWarningDismissed(true)} style={{width: '28px', height: '28px', borderRadius: '8px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)'}}>
+                        <div onClick={() => setIsWarningDismissed(true)} style={{width: '28px', height: '28px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)'}}>
                             <X size={14} />
                         </div>
                     </div>
                 )}
 
-                {/* ── Map panel (top on mobile, left on desktop) ─────────── */}
-                <div style={{width: isNarrow ? '100%' : '60%', height: isNarrow ? '42vh' : 'auto', flexShrink: 0, borderRadius: isNarrow ? '18px' : '24px', overflow: 'hidden', border: '1.5px solid var(--ink-line)', boxShadow: 'var(--neu-raised)', position: 'relative'}}>
+                {/* ── Mobile map/list toggle ─────────────────────────────── */}
+                {isNarrow && (
+                    <div style={{display: 'flex', gap: '8px', flexShrink: 0}}>
+                        {(['list', 'map'] as const).map(v => {
+                            const active = mobileView === v;
+                            return (
+                                <button key={v} onClick={() => setMobileView(v)}
+                                    style={{flex: 1, padding: '11px', border: '2px solid var(--text-primary)', background: active ? 'var(--accent)' : 'var(--surface)', color: active ? 'var(--accent-text)' : 'var(--text-primary)', fontFamily: 'var(--font-display)', fontSize: '15px', letterSpacing: '0.04em', textTransform: 'uppercase', cursor: 'pointer'}}>
+                                    {v === 'list' ? 'List' : 'Map'}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* ── Map panel (left on desktop / "Map" tab on mobile) ──── */}
+                <div ref={mapWrapRef} style={{width: isNarrow ? '100%' : '60%', flex: isNarrow ? '1 1 0' : '0 0 60%', minHeight: 0, borderRadius: '0', overflow: 'hidden', border: '2px solid var(--text-primary)', position: 'relative', display: isNarrow && mobileView !== 'map' ? 'none' : 'block'}}>
                     {/* Loading overlay */}
                     {hideMapUntilReady && (
                         <div style={{position: 'absolute', inset: 0, zIndex: 10, background: 'var(--neu-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
@@ -714,7 +747,7 @@ function MapExtensionApp() {
                                         {isPinned && <div style={{position: 'absolute', top: '5px', left: '5px', width: '10px', height: '10px', borderRadius: '50%', background: ACCENT, pointerEvents: 'none'}} />}
                                         {/* Tooltip */}
                                         {(isHovered || isPinned) && (
-                                            <div style={{position: 'absolute', bottom: '36px', left: '50%', transform: 'translateX(-50%)', background: isPinned ? ACCENT : 'var(--neu-bg)', boxShadow: isPinned ? `0 4px 14px rgba(245,193,61,0.4)` : 'var(--neu-raised)', borderRadius: '10px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, color: isPinned ? ACCENT_TEXT : 'var(--text-primary)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 20}}>
+                                            <div style={{position: 'absolute', bottom: '36px', left: '50%', transform: 'translateX(-50%)', background: isPinned ? ACCENT : 'var(--neu-bg)', boxShadow: isPinned ? `0 4px 14px rgba(245,193,61,0.4)` : 'var(--neu-raised)', borderRadius: '4px', padding: '6px 12px', fontSize: '12px', fontWeight: 600, color: isPinned ? ACCENT_TEXT : 'var(--text-primary)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 20}}>
                                                 {location.name}
                                             </div>
                                         )}
@@ -725,8 +758,8 @@ function MapExtensionApp() {
                     </MapBoxMap>
                 </div>
 
-                {/* ── Jobs list panel (below on mobile, right on desktop) ── */}
-                <div style={{flex: 1, minHeight: 0, width: '100%', borderRadius: isNarrow ? '18px' : '24px', background: 'var(--neu-bg)', border: '1.5px solid var(--ink-line)', boxShadow: 'var(--neu-raised)', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+                {/* ── Jobs list panel (right on desktop / "List" tab on mobile) ── */}
+                <div style={{flex: 1, minHeight: 0, width: '100%', borderRadius: '0', background: 'var(--surface)', border: '2px solid var(--text-primary)', overflow: 'hidden', flexDirection: 'column', display: isNarrow && mobileView !== 'list' ? 'none' : 'flex'}}>
                     <JobsPanel records={records} table={table} pinnedRecordId={pinnedRecordId} onClearPin={() => setPinnedRecordId(null)} />
                 </div>
             </div>

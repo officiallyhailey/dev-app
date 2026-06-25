@@ -1,8 +1,18 @@
+/* Base reset only. Design tokens, the body font and the light/dark palette
+   live in theme.css (the single source of truth for colours). */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 html,
 body {
     margin: 0;
     padding: 0;
-    background: #eceae4;
+    min-height: 100%;
+    background: var(--page);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -11,12 +21,4 @@ body {
     html {
         color-scheme: dark;
     }
-    html,
-    body {
-        background: #15140f;
-    }
-}
-
-* {
-    box-sizing: border-box;
 }

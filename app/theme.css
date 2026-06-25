@@ -14,8 +14,18 @@ html:root {
     --accent-deep: #E3A81B;
     --accent-text: #221d08;  /* near-black text on yellow */
     --font-display: 'Anton', Impact, 'Arial Narrow Bold', sans-serif;
-    --font-ui: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     --nav-h: 56px;   /* shared TopNav height; modals offset below this */
+
+    /* Brutalist re-skin of the Jobs page's "neumorphic" tokens. The Jobs UI was
+       ported with soft shadows; redefining these tokens (instead of every inline
+       style) converts it to hard outlines + offset shadows. Colours reference the
+       theme-aware vars above, so one definition covers both light and dark. */
+    --neu-raised:       0 0 0 2px var(--text-primary), 4px 4px 0 var(--text-primary);
+    --neu-raised-sm:    0 0 0 1.5px var(--ink-line);
+    --neu-raised-hover: 0 0 0 2px var(--text-primary), 6px 6px 0 var(--text-primary);
+    --neu-inset:        inset 0 0 0 2px var(--ink-line);
+    --neu-inset-sm:     0 0 0 1.5px var(--ink-line);
+    --neu-modal:        0 0 0 2px var(--text-primary), 14px 14px 0 var(--text-primary);
 }
 
 /* Montserrat as the global default body font. */

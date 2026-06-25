@@ -6,7 +6,7 @@ import { Shell } from '@/lib/components/Shell';
 import { useIsNarrow } from '@/lib/useIsNarrow';
 type Field = any;
 type FieldConfig = any;
-import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, CaretRightIcon, HouseIcon, SquaresFourIcon, PlusIcon } from '@phosphor-icons/react';
+import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, CaretRightIcon, HouseIcon, SquaresFourIcon } from '@phosphor-icons/react';
 
 const ACCENT      = '#F5C13D'; // amber primary
 const ACCENT_DEEP = '#E3A81B'; // darker amber (tags / icons on tint)
@@ -29,10 +29,6 @@ function CornerBrackets({ inset = 8, size = 11, color = 'var(--ink-line)' }: { i
             <div style={{ ...base, bottom: inset, right: inset, borderBottom: b, borderRight: b }} />
         </>
     );
-}
-
-function Cross({ style }: { style?: React.CSSProperties }) {
-    return <PlusIcon size={11} weight="bold" style={{ color: 'var(--text-muted)', opacity: 0.55, ...style }} />;
 }
 
 // A black "// LABEL" header bar (ORBIT / Manual spec-table style)
