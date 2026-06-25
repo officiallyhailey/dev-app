@@ -9,7 +9,7 @@ import { useIsNarrow } from '@/lib/useIsNarrow';
 const DISPLAY = 'var(--font-display)';
 
 const SECTIONS = [
-    { href: '/cheatsheet', label: 'Cheat Sheets', desc: 'Searchable summaries, notes & language references.', Icon: BookOpenIcon, n: '01' },
+    { href: '/cheatsheet', label: 'Cheat Sheets', desc: 'AI generated summaries, notes & language references.', Icon: BookOpenIcon, n: '01' },
     { href: '/devwork', label: 'Dev Work', desc: 'Snippets, links and attachments from your projects.', Icon: CodeIcon, n: '02' },
     { href: '/events', label: 'Events', desc: 'Agendas, deadlines and conferences on a timeline.', Icon: CalendarBlankIcon, n: '03' },
     { href: '/jobs', label: 'Jobs', desc: 'Opportunities plotted on an interactive map.', Icon: BriefcaseIcon, n: '04' },
@@ -82,8 +82,7 @@ export default function Landing() {
                             Everything<br />you save,<br /><span style={{ background: 'var(--accent)', color: 'var(--accent-text)', padding: '0 0.12em', boxDecorationBreak: 'clone', WebkitBoxDecorationBreak: 'clone' }}>one&nbsp;deck.</span>
                         </h1>
                         <p style={{ fontSize: isNarrow ? '15px' : '17px', lineHeight: 1.6, fontWeight: 500, color: 'var(--text-muted)', margin: '22px 0 26px', maxWidth: '46ch' }}>
-                            Cheat sheets, dev work, events, jobs and tools — pulled from your
-                            Airtable base into one fast, brutalist workspace you can carry in your pocket.
+                           AI powered tool to help you organize your dev resources, notes, and references in one place. Save time and stay productive with DevDeck. API integration coming from airtable agents, Mapbox, and more. Stay tuned for updates and new features!
                         </p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                             <Link href="/cheatsheet" style={{

@@ -1,11 +1,11 @@
 {
-    "name": "Cheat Sheets",
-    "short_name": "Cheat Sheets",
-    "description": "Airtable interfaces, on the go.",
+    "name": "DevDeck",
+    "short_name": "DevDeck",
+    "description": "Cheat sheets, dev work, events, jobs and tools — on the go.",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#eceae4",
-    "theme_color": "#eceae4",
+    "background_color": "#f4f4f5",
+    "theme_color": "#f4f4f5",
     "icons": [
         {
             "src": "/icon.svg",
