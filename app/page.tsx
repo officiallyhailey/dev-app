@@ -121,7 +121,7 @@ export default function Landing() {
                 backgroundSize: '40px 40px', overflow: 'hidden',
             }}>
                 <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', gap: isNarrow ? '28px' : '40px', alignItems: 'center' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ flex: 1, minWidth: 0, textAlign: isNarrow ? 'center' : 'left' }}>
                         <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '18px' }}>// Personal resource hub</div>
                         <h1 style={{
                             margin: 0, fontFamily: DISPLAY, textTransform: 'uppercase',
@@ -132,10 +132,10 @@ export default function Landing() {
                             <span style={{ display: 'block' }}>you save,</span>
                             <span style={{ display: 'inline-block', marginTop: '0.1em', background: 'var(--accent)', color: 'var(--accent-text)', padding: '0.04em 0.16em 0.1em' }}>one&nbsp;deck.</span>
                         </h1>
-                        <p style={{ fontSize: isNarrow ? '15px' : '17px', lineHeight: 1.6, fontWeight: 500, color: 'var(--text-muted)', margin: '22px 0 26px', maxWidth: '46ch' }}>
+                        <p style={{ fontSize: isNarrow ? '15px' : '17px', lineHeight: 1.6, fontWeight: 500, color: 'var(--text-muted)', margin: isNarrow ? '22px auto 26px' : '22px 0 26px', maxWidth: '46ch' }}>
                            AI powered tool to help you organize your dev resources, notes, and references in one place. Save time and stay productive with DevDeck. API integration coming from airtable agents, Mapbox, and more. Stay tuned for updates and new features!
                         </p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: isNarrow ? 'center' : 'flex-start' }}>
                             <Link href="/cheatsheet" style={{
                                 ...mono, fontSize: '12px', textDecoration: 'none', padding: '14px 22px',
                                 background: 'var(--accent)', color: 'var(--accent-text)', border: '2px solid var(--text-primary)',
