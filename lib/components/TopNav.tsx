@@ -15,6 +15,7 @@ const LINKS = [
     { href: '/events', label: 'Events' },
     { href: '/jobs', label: 'Jobs' },
     { href: '/tools', label: 'Tools' },
+    { href: '/about', label: 'About' },
 ];
 
 const DISPLAY = 'var(--font-display)';

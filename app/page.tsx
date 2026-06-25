@@ -100,98 +100,6 @@ function HeroComputer({ isNarrow }: { isNarrow: boolean }) {
     );
 }
 
-// ── "How it's built" — portfolio / architecture outline ───────────────────────
-const FLOW = [
-    { label: 'Browser', sub: 'React UI · PWA' },
-    { label: 'API Proxy', sub: 'holds the token' },
-    { label: 'Airtable + Mapbox', sub: 'REST · geocoding' },
-];
-
-const BUILD_CARDS: { title: string; rows: { k: string; v: string }[] }[] = [
-    {
-        title: 'Stack',
-        rows: [
-            { k: 'Framework', v: 'Next.js 16 · React 19' },
-            { k: 'Language', v: 'TypeScript' },
-            { k: 'Data', v: 'SWR (suspense)' },
-            { k: 'Hosting', v: 'Vercel · installable PWA' },
-        ],
-    },
-    {
-        title: 'APIs',
-        rows: [
-            { k: 'Airtable REST', v: 'Records, schema & attachments' },
-            { k: 'Mapbox', v: 'Geocoding + interactive map' },
-            { k: 'Web Crypto', v: 'Signed session cookie' },
-        ],
-    },
-    {
-        title: 'Architecture',
-        rows: [
-            { k: 'Secrets', v: 'Token stays server-side, never in the browser' },
-            { k: 'Adapter', v: 'Re-creates the Airtable SDK over REST' },
-            { k: 'Auth', v: 'Single password → httpOnly cookie' },
-        ],
-    },
-];
-
-const CHIPS = ['Next.js', 'React', 'TypeScript', 'SWR', 'Airtable API', 'Mapbox', 'Vercel', 'PWA'];
-
-function HowItsBuilt({ isNarrow }: { isNarrow: boolean }) {
-    return (
-        <section style={{ padding: isNarrow ? '32px 16px' : '56px 32px', borderTop: '2px solid var(--text-primary)', background: 'var(--surface)' }}>
-            <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-                <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '12px' }}>// Under the hood</div>
-                <h2 style={{ margin: '0 0 14px', fontFamily: DISPLAY, fontSize: 'clamp(28px, 6vw, 46px)', textTransform: 'uppercase', lineHeight: 1, color: 'var(--text-primary)' }}>How it&apos;s built</h2>
-                <p style={{ margin: '0 0 28px', fontSize: isNarrow ? '14px' : '16px', lineHeight: 1.6, fontWeight: 500, color: 'var(--text-muted)', maxWidth: '60ch' }}>
-                    A standalone React app that surfaces an Airtable base outside of Airtable. The
-                    secret token lives only on the server — the browser talks to a thin proxy.
-                </p>
-
-                {/* Data-flow strip */}
-                <div style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', alignItems: 'stretch', gap: '0', marginBottom: '28px' }}>
-                    {FLOW.map((step, i) => (
-                        <React.Fragment key={step.label}>
-                            <div style={{ flex: 1, border: '2px solid var(--text-primary)', padding: '16px 18px', background: i === 1 ? 'var(--accent)' : 'var(--page)', color: i === 1 ? 'var(--accent-text)' : 'var(--text-primary)' }}>
-                                <div style={{ fontFamily: DISPLAY, fontSize: '20px', textTransform: 'uppercase', lineHeight: 1 }}>{step.label}</div>
-                                <div style={{ ...mono, marginTop: '7px', opacity: 0.75 }}>{step.sub}</div>
-                            </div>
-                            {i < FLOW.length - 1 && (
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isNarrow ? '4px 0' : '0 4px', fontFamily: DISPLAY, fontSize: '22px', color: 'var(--text-primary)' }}>
-                                    {isNarrow ? '↓' : '→'}
-                                </div>
-                            )}
-                        </React.Fragment>
-                    ))}
-                </div>
-
-                {/* Detail cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(3, 1fr)', gap: isNarrow ? '14px' : '18px', marginBottom: '24px' }}>
-                    {BUILD_CARDS.map(card => (
-                        <div key={card.title} style={{ border: '2px solid var(--text-primary)', background: 'var(--page)', padding: '18px' }}>
-                            <div style={{ fontFamily: DISPLAY, fontSize: '20px', textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: '12px' }}>{card.title}</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
-                                {card.rows.map(row => (
-                                    <div key={row.k}>
-                                        <div style={{ ...mono, color: 'var(--accent-deep, var(--text-primary))', marginBottom: '2px' }}>{row.k}</div>
-                                        <div style={{ fontSize: '13.5px', fontWeight: 500, lineHeight: 1.4, color: 'var(--text-primary)' }}>{row.v}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Tech chips */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {CHIPS.map(chip => (
-                        <span key={chip} style={{ ...mono, padding: '7px 12px', border: '2px solid var(--text-primary)', background: 'var(--page)', color: 'var(--text-primary)' }}>{chip}</span>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
 
 export default function Landing() {
     const isNarrow = useIsNarrow();
@@ -251,6 +159,24 @@ export default function Landing() {
                 </div>
             </section>
 
+            {/* ── "How it's built" teaser → dedicated /about page ────────────── */}
+            <Link href="/about" style={{ textDecoration: 'none', display: 'block', borderTop: '2px solid var(--text-primary)' }}>
+                <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isNarrow ? '22px 16px' : '28px 32px', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', alignItems: isNarrow ? 'flex-start' : 'center', justifyContent: 'space-between', gap: '14px' }}>
+                    <div>
+                        <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '8px' }}>// Under the hood</div>
+                        <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(22px, 5vw, 34px)', textTransform: 'uppercase', lineHeight: 1, color: 'var(--text-primary)' }}>
+                            See how it&apos;s built
+                        </div>
+                        <div style={{ fontSize: isNarrow ? '13.5px' : '15px', fontWeight: 500, color: 'var(--text-muted)', marginTop: '8px', maxWidth: '60ch' }}>
+                            Architecture, tech stack, hosting, security and the engineering &amp; design decisions behind DevDeck.
+                        </div>
+                    </div>
+                    <span style={{ ...mono, fontSize: '12px', flexShrink: 0, padding: '14px 22px', background: 'var(--accent)', color: 'var(--accent-text)', border: '2px solid var(--text-primary)', boxShadow: '5px 5px 0 var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        Read the write-up <ArrowRightIcon size={14} weight="bold" />
+                    </span>
+                </div>
+            </Link>
+
             {/* ── Kinetic marquee ────────────────────────────────────────────── */}
             <div style={{ borderTop: '2px solid var(--text-primary)', borderBottom: '2px solid var(--text-primary)', background: 'var(--accent)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                 <div className="dd-marquee-track" style={{ display: 'inline-flex', animation: 'ddMarquee 26s linear infinite' }}>
@@ -270,9 +196,6 @@ export default function Landing() {
                     ))}
                 </div>
             </div>
-
-            {/* ── How it's built (portfolio / architecture) ──────────────────── */}
-            <HowItsBuilt isNarrow={isNarrow} />
 
             {/* ── Sections ───────────────────────────────────────────────────── */}
             <section id="sections" style={{ flex: 1, padding: isNarrow ? '28px 16px 48px' : '48px 32px 72px' }}>

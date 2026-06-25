@@ -1,0 +1,280 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { ArrowRightIcon, ArrowLeftIcon } from '@phosphor-icons/react';
+import { TopNav } from '@/lib/components/TopNav';
+import { useIsNarrow } from '@/lib/useIsNarrow';
+
+const DISPLAY = 'var(--font-display)';
+
+const mono: React.CSSProperties = {
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+    fontSize: '11px', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase',
+};
+
+// ── Content data ──────────────────────────────────────────────────────────────
+const FLOW = [
+    { label: 'Browser', sub: 'React UI · SWR · PWA' },
+    { label: 'API Proxy', sub: 'serverless · holds token' },
+    { label: 'Airtable + Mapbox', sub: 'REST · geocoding' },
+];
+
+const STACK: { k: string; v: string }[] = [
+    { k: 'Framework', v: 'Next.js 16 (App Router)' },
+    { k: 'UI', v: 'React 19 · TypeScript' },
+    { k: 'Data fetching', v: 'SWR (suspense mode)' },
+    { k: 'Maps', v: 'Mapbox GL · react-map-gl' },
+    { k: 'Icons / Fonts', v: 'Phosphor · next/font' },
+    { k: 'Tooling', v: 'ESLint-clean · npm' },
+];
+
+const HOSTING: { k: string; v: string }[] = [
+    { k: 'Platform', v: 'Vercel — static pages + serverless route handlers' },
+    { k: 'Install', v: 'PWA: web manifest, themed icons, Add to Home Screen' },
+    { k: 'Config', v: 'Environment variables (no secrets in the repo)' },
+    { k: 'Rendering', v: 'Static interfaces, client-fetched data via SWR' },
+];
+
+const SECURITY: { t: string; d: string }[] = [
+    { t: 'Token never reaches the browser', d: 'The Airtable token lives only in server-side route handlers. Every Airtable call is proxied; the client only ever talks to /api/*.' },
+    { t: 'Signed session cookie', d: 'A single password issues an HMAC-SHA256 signed, httpOnly cookie via the Web Crypto API — no token or password stored client-side.' },
+    { t: 'Middleware gate', d: 'proxy.ts (Next.js middleware) guards every route: unauthenticated page loads redirect to /login, API calls get a 401.' },
+    { t: 'Public vs private keys', d: 'Only the public Mapbox token is exposed (NEXT_PUBLIC_*). Secrets are git-ignored and set in the host dashboard.' },
+];
+
+const ENG_SKILLS = ['REST API integration', 'Serverless functions', 'Auth & cryptography', 'Data normalization', 'Client-side caching', 'TypeScript', 'Responsive / PWA', 'Maps & geocoding', 'State management'];
+const DESIGN_SKILLS = ['Design tokens', 'Brutalist design system', 'Typography & font pairing', 'Light / dark theming', 'Mobile-first layout', 'Component architecture', 'Interaction / UX states', 'Accessibility-minded'];
+
+const MODULES: { name: string; what: string; ex: string }[] = [
+    { name: 'Cheat Sheets', what: 'Searchable reference library', ex: 'Read · create · live AI fields' },
+    { name: 'Dev Work', what: 'Snippets, links & files', ex: 'Edit · attachment uploads' },
+    { name: 'Events', what: 'Agenda & deadlines timeline', ex: 'Full create / update / delete' },
+    { name: 'Jobs', what: 'Opportunities on a map', ex: 'Mapbox · geocoding · edit' },
+    { name: 'Tools', what: 'Categorised resource directory', ex: 'Read · grouping by field' },
+];
+
+const CHIPS = ['Next.js', 'React', 'TypeScript', 'SWR', 'Airtable API', 'Mapbox', 'Web Crypto', 'Vercel', 'PWA'];
+
+// ── Reusable bits ─────────────────────────────────────────────────────────────
+function Eyebrow({ n, text }: { n: string; text: string }) {
+    return (
+        <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '10px' }}>
+            {n} · {text}
+        </div>
+    );
+}
+
+function Heading({ children }: { children: React.ReactNode }) {
+    return (
+        <h2 style={{ margin: '0 0 16px', fontFamily: DISPLAY, fontSize: 'clamp(26px, 5vw, 40px)', textTransform: 'uppercase', lineHeight: 1, color: 'var(--text-primary)' }}>
+            {children}
+        </h2>
+    );
+}
+
+function Card({ children, accent = false }: { children: React.ReactNode; accent?: boolean }) {
+    return (
+        <div style={{ border: '2px solid var(--text-primary)', background: accent ? 'var(--accent)' : 'var(--page)', color: accent ? 'var(--accent-text)' : 'var(--text-primary)', padding: '18px' }}>
+            {children}
+        </div>
+    );
+}
+
+function KV({ k, v }: { k: string; v: string }) {
+    return (
+        <div>
+            <div style={{ ...mono, color: 'var(--accent-deep, var(--text-primary))', marginBottom: '3px' }}>{k}</div>
+            <div style={{ fontSize: '14px', fontWeight: 500, lineHeight: 1.45, color: 'var(--text-primary)' }}>{v}</div>
+        </div>
+    );
+}
+
+export default function About() {
+    const isNarrow = useIsNarrow();
+    const padX = isNarrow ? '16px' : '32px';
+    const body: React.CSSProperties = { fontSize: isNarrow ? '15px' : '16px', lineHeight: 1.7, fontWeight: 500, color: 'var(--text-muted)', maxWidth: '70ch' };
+    const section: React.CSSProperties = { padding: isNarrow ? '36px 16px' : '56px 32px', borderTop: '2px solid var(--text-primary)' };
+    const wrap: React.CSSProperties = { maxWidth: '1040px', margin: '0 auto' };
+
+    return (
+        <div style={{ minHeight: '100dvh', background: 'var(--page)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ position: 'sticky', top: 0, zIndex: 1200 }}><TopNav /></div>
+
+            {/* ── Header ──────────────────────────────────────────────────────── */}
+            <header style={{
+                padding: isNarrow ? '40px 16px 32px' : '64px 32px 48px',
+                backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)',
+                backgroundSize: '40px 40px',
+            }}>
+                <div style={wrap}>
+                    <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '16px' }}>// Engineering write-up</div>
+                    <h1 style={{ margin: 0, fontFamily: DISPLAY, fontSize: 'clamp(40px, 9vw, 88px)', textTransform: 'uppercase', lineHeight: 0.92, color: 'var(--text-primary)' }}>
+                        How it&apos;s built
+                    </h1>
+                    <p style={{ ...body, margin: '20px 0 24px' }}>
+                        DevDeck is a standalone, mobile-first web app that surfaces an Airtable base
+                        <em> outside </em> of Airtable. Airtable&apos;s own Interface Extensions only run on
+                        desktop inside its runtime — this project re-implements that data layer on the
+                        Airtable REST API so the same tools work on a phone, installable as a PWA, with the
+                        secret token kept safely server-side.
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {CHIPS.map(c => (
+                            <span key={c} style={{ ...mono, padding: '6px 11px', border: '2px solid var(--text-primary)', background: 'var(--surface)', color: 'var(--text-primary)' }}>{c}</span>
+                        ))}
+                    </div>
+                </div>
+            </header>
+
+            {/* ── 01 · Request flow ───────────────────────────────────────────── */}
+            <section style={section}>
+                <div style={wrap}>
+                    <Eyebrow n="01" text="Request flow" />
+                    <Heading>One secure path</Heading>
+                    <p style={{ ...body, marginTop: 0, marginBottom: '26px' }}>
+                        The rule that shapes everything: the Airtable token must never reach the browser.
+                        The client calls a thin serverless proxy that attaches the token and forwards to
+                        Airtable. Mapbox uses a separate, public token and is safe to call directly.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', alignItems: 'stretch' }}>
+                        {FLOW.map((step, i) => (
+                            <React.Fragment key={step.label}>
+                                <div style={{ flex: 1, border: '2px solid var(--text-primary)', padding: '18px', background: i === 1 ? 'var(--accent)' : 'var(--surface)', color: i === 1 ? 'var(--accent-text)' : 'var(--text-primary)' }}>
+                                    <div style={{ fontFamily: DISPLAY, fontSize: '21px', textTransform: 'uppercase', lineHeight: 1 }}>{step.label}</div>
+                                    <div style={{ ...mono, marginTop: '8px', opacity: 0.75 }}>{step.sub}</div>
+                                </div>
+                                {i < FLOW.length - 1 && (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isNarrow ? '4px 0' : '0 6px', fontFamily: DISPLAY, fontSize: '24px', color: 'var(--text-primary)' }}>
+                                        {isNarrow ? '↓' : '→'}
+                                    </div>
+                                )}
+                            </React.Fragment>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── 02 · Tech stack ─────────────────────────────────────────────── */}
+            <section style={section}>
+                <div style={wrap}>
+                    <Eyebrow n="02" text="Tech stack" />
+                    <Heading>What it&apos;s made of</Heading>
+                    <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(3, 1fr)', gap: isNarrow ? '14px' : '18px' }}>
+                        {STACK.map(row => <Card key={row.k}><KV k={row.k} v={row.v} /></Card>)}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── 03 · Hosting & delivery ─────────────────────────────────────── */}
+            <section style={section}>
+                <div style={wrap}>
+                    <Eyebrow n="03" text="Hosting & delivery" />
+                    <Heading>How it ships</Heading>
+                    <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(2, 1fr)', gap: isNarrow ? '14px' : '18px' }}>
+                        {HOSTING.map(row => <Card key={row.k}><KV k={row.k} v={row.v} /></Card>)}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── 04 · Security ───────────────────────────────────────────────── */}
+            <section style={{ ...section, background: 'var(--surface)' }}>
+                <div style={wrap}>
+                    <Eyebrow n="04" text="Security" />
+                    <Heading>Keeping secrets secret</Heading>
+                    <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(2, 1fr)', gap: isNarrow ? '14px' : '18px' }}>
+                        {SECURITY.map(item => (
+                            <div key={item.t} style={{ border: '2px solid var(--text-primary)', background: 'var(--page)', padding: '18px' }}>
+                                <div style={{ fontFamily: DISPLAY, fontSize: '18px', textTransform: 'uppercase', lineHeight: 1.05, color: 'var(--text-primary)', marginBottom: '8px' }}>{item.t}</div>
+                                <div style={{ fontSize: '13.5px', fontWeight: 500, lineHeight: 1.55, color: 'var(--text-muted)' }}>{item.d}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── 05 · Architecture ───────────────────────────────────────────── */}
+            <section style={section}>
+                <div style={wrap}>
+                    <Eyebrow n="05" text="Architecture" />
+                    <Heading>The compatibility adapter</Heading>
+                    <p style={{ ...body, marginTop: 0 }}>
+                        The interfaces were ported from Airtable Blocks Extensions, which expose hooks like
+                        <code style={{ fontFamily: 'ui-monospace, monospace', background: 'var(--surface-2)', padding: '1px 6px', margin: '0 2px' }}>useRecords()</code>
+                        and records with <code style={{ fontFamily: 'ui-monospace, monospace', background: 'var(--surface-2)', padding: '1px 6px', margin: '0 2px' }}>getCellValue()</code>.
+                        Rather than rewrite that UI, a small adapter re-creates the same surface on top of the
+                        REST API — so the ported screens changed almost not at all.
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(3, 1fr)', gap: isNarrow ? '14px' : '18px', marginTop: '24px' }}>
+                        <Card><KV k="Hooks" v="useBase() / useRecords() fetch via SWR and wrap rows in record models" /></Card>
+                        <Card><KV k="Normalize" v="Translates REST value shapes ↔ the shapes the SDK returned (selects, AI text, attachments, formulas)" /></Card>
+                        <Card><KV k="Mutations" v="create / update / delete proxy to Airtable, then revalidate the SWR cache" /></Card>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── 06 · Skills ─────────────────────────────────────────────────── */}
+            <section style={{ ...section, background: 'var(--surface)' }}>
+                <div style={wrap}>
+                    <Eyebrow n="06" text="Skills demonstrated" />
+                    <Heading>Engineering &amp; design</Heading>
+                    <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(2, 1fr)', gap: isNarrow ? '20px' : '28px' }}>
+                        <div>
+                            <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '12px' }}>// Engineering</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {ENG_SKILLS.map(s => <span key={s} style={{ ...mono, padding: '7px 11px', border: '2px solid var(--text-primary)', background: 'var(--page)' }}>{s}</span>)}
+                            </div>
+                        </div>
+                        <div>
+                            <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '12px' }}>// Design</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {DESIGN_SKILLS.map(s => <span key={s} style={{ ...mono, padding: '7px 11px', border: '2px solid var(--text-primary)', background: 'var(--accent)', color: 'var(--accent-text)' }}>{s}</span>)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── 07 · Modules ────────────────────────────────────────────────── */}
+            <section style={section}>
+                <div style={wrap}>
+                    <Eyebrow n="07" text="The modules" />
+                    <Heading>Five interfaces</Heading>
+                    <div style={{ border: '2px solid var(--text-primary)' }}>
+                        {/* header row (desktop only) */}
+                        {!isNarrow && (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1.3fr', borderBottom: '2px solid var(--text-primary)', background: 'var(--accent)', color: 'var(--accent-text)' }}>
+                                {['Module', 'What it does', 'Airtable features'].map(h => (
+                                    <div key={h} style={{ ...mono, padding: '12px 16px' }}>{h}</div>
+                                ))}
+                            </div>
+                        )}
+                        {MODULES.map((m, i) => (
+                            <div key={m.name} style={{ display: isNarrow ? 'block' : 'grid', gridTemplateColumns: '1fr 1.3fr 1.3fr', borderTop: i === 0 && isNarrow ? 'none' : i === 0 ? 'none' : '1.5px solid var(--ink-line)', padding: isNarrow ? '14px 16px' : 0 }}>
+                                <div style={{ padding: isNarrow ? '0' : '14px 16px', fontFamily: DISPLAY, fontSize: '18px', textTransform: 'uppercase', color: 'var(--text-primary)' }}>{m.name}</div>
+                                <div style={{ padding: isNarrow ? '4px 0 0' : '14px 16px', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>{m.what}</div>
+                                <div style={{ padding: isNarrow ? '2px 0 0' : '14px 16px', ...mono, fontSize: '10px', letterSpacing: '0.08em', color: 'var(--text-muted)', alignSelf: 'center' }}>{m.ex}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Back to app CTA */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '32px' }}>
+                        <Link href="/cheatsheet" style={{ ...mono, fontSize: '12px', textDecoration: 'none', padding: '14px 22px', background: 'var(--accent)', color: 'var(--accent-text)', border: '2px solid var(--text-primary)', boxShadow: '5px 5px 0 var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            Open the app <ArrowRightIcon size={14} weight="bold" />
+                        </Link>
+                        <Link href="/" style={{ ...mono, fontSize: '12px', textDecoration: 'none', padding: '14px 22px', background: 'var(--surface)', color: 'var(--text-primary)', border: '2px solid var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <ArrowLeftIcon size={14} weight="bold" /> Back to home
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── Footer ──────────────────────────────────────────────────────── */}
+            <footer style={{ borderTop: '2px solid var(--text-primary)', padding: isNarrow ? '20px 16px' : '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: DISPLAY, fontSize: '20px', textTransform: 'uppercase', color: 'var(--text-primary)' }}>DevDeck</span>
+                <span style={{ ...mono, color: 'var(--text-muted)' }}>// built for the go</span>
+            </footer>
+        </div>
+    );
+}
