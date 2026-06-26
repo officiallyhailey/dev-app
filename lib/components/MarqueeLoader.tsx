@@ -3,7 +3,6 @@
 import React from 'react';
 
 const DISPLAY = 'var(--font-display)';
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 const ITEMS = ['Cheat Sheets', 'Dev Work', 'Agenda', 'Jobs', 'Tools'];
 
 /**
@@ -43,11 +42,6 @@ export function MarqueeLoader() {
                         </div>
                     );
                 })}
-            </div>
-
-            {/* Loading cue on top */}
-            <div style={{ position: 'relative', zIndex: 1, fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-primary)', padding: '11px 20px', border: '2px solid var(--text-primary)', background: 'var(--surface)', boxShadow: '4px 4px 0 var(--text-primary)' }}>
-                Loading…
             </div>
         </div>
     );

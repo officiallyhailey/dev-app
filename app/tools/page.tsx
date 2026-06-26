@@ -275,12 +275,12 @@ function ToolModal({ record, nameField, summaryField, linkField, orgField, categ
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 16px', borderRadius: '6px', flexShrink: 0, background: ACCENT, color: ACCENT_TEXT, fontFamily: MONO, fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', textDecoration: 'none', border: `1.5px solid ${INK}`, transition: 'background 0.1s' }}
                                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DEEP}
                                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = ACCENT}>
-                                Open Tool <ArrowUpRightIcon size={13} weight="bold" />
+                                <ArrowUpRightIcon size={13} weight="bold" />
                             </a>
                         )}
                     </div>
 
-                   
+                
                     {/* Summary */}
                     {summary.trim().length > 0 && (
                         <div>
