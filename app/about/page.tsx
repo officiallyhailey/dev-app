@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRightIcon, ArrowLeftIcon } from '@phosphor-icons/react';
 import { TopNav } from '@/lib/components/TopNav';
@@ -16,9 +16,16 @@ const mono: React.CSSProperties = {
 
 // ── Content data ──────────────────────────────────────────────────────────────
 const FLOW = [
-    { label: 'Browser', sub: 'React UI · SWR · PWA' },
-    { label: 'API Proxy', sub: 'serverless · holds token' },
-    { label: 'Airtable + Mapbox', sub: 'REST · geocoding' },
+    { label: 'Browser', sub: 'React UI · SWR · PWA', detail: 'Your phone or laptop runs the React app. It never holds the Airtable token — it only ever calls this app’s own /api routes.' },
+    { label: 'API Proxy', sub: 'serverless · holds token', detail: 'A serverless function attaches the secret token and forwards the request to Airtable. This is the one and only place that token exists.' },
+    { label: 'Airtable + Mapbox', sub: 'REST · geocoding', detail: 'Airtable returns the records; Mapbox geocodes addresses for the Jobs map. The response travels back through the proxy to the browser.' },
+];
+
+const STATS: { to: number; suffix: string; label: string }[] = [
+    { to: 5, suffix: '', label: 'Interfaces, one codebase' },
+    { to: 0, suffix: '', label: 'Secrets in the browser' },
+    { to: 100, suffix: '%', label: 'TypeScript' },
+    { to: 1, suffix: '', label: 'Password, fully gated' },
 ];
 
 const STACK: { k: string; v: string }[] = [
@@ -79,7 +86,17 @@ const MODULES: { name: string; what: string; ex: string }[] = [
     { name: 'Tools', what: 'Categorised resource directory', ex: 'Create (link → AI) · grouping' },
 ];
 
-const CHIPS = ['Next.js', 'React', 'TypeScript', 'SWR', 'Airtable API', 'Mapbox', 'Web Crypto', 'Vercel', 'PWA'];
+const CHIPS: { name: string; info: string }[] = [
+    { name: 'Next.js', info: 'The React framework that powers both the pages and the server-side API routes — one codebase, one deploy, no separate backend.' },
+    { name: 'React', info: 'The UI library. Components describe what the screen should look like for a given state, and React keeps the actual page in sync.' },
+    { name: 'TypeScript', info: 'JavaScript with a type system. The compiler catches whole classes of bugs before the code ever runs, and the types double as documentation.' },
+    { name: 'SWR', info: 'A data-fetching library that caches responses, dedupes identical requests, and revalidates after writes — so the screen always shows fresh data.' },
+    { name: 'Airtable API', info: 'The REST API behind the spreadsheet-database that stores everything. Every read and write goes through it — but only via the server proxy.' },
+    { name: 'Mapbox', info: 'Maps and geocoding. It turns a job’s address into map coordinates and renders the interactive map on the Jobs page.' },
+    { name: 'Web Crypto', info: 'The runtime’s built-in cryptography. It signs the login cookie with HMAC-SHA256, so no third-party auth library is needed.' },
+    { name: 'Vercel', info: 'The host. It serves the static pages and runs the serverless functions that hold the secret Airtable token.' },
+    { name: 'PWA', info: 'Progressive Web App — a manifest plus icons let the site install to a phone’s home screen and launch full-screen, like a native app.' },
+];
 
 // ── Reusable bits ─────────────────────────────────────────────────────────────
 function Eyebrow({ n, text }: { n: string; text: string }) {
@@ -100,7 +117,10 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function Card({ children, accent = false }: { children: React.ReactNode; accent?: boolean }) {
     return (
-        <div style={{ border: '2px solid var(--text-primary)', background: accent ? 'var(--accent)' : 'var(--page)', color: accent ? 'var(--accent-text)' : 'var(--text-primary)', padding: '18px' }}>
+        <div
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '5px 5px 0 var(--text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
+            style={{ border: '2px solid var(--text-primary)', background: accent ? 'var(--accent)' : 'var(--page)', color: accent ? 'var(--accent-text)' : 'var(--text-primary)', padding: '18px', transition: 'box-shadow 0.18s' }}>
             {children}
         </div>
     );
@@ -115,16 +135,40 @@ function KV({ k, v }: { k: string; v: string }) {
     );
 }
 
+// One shared "which tooltip is open" value, so only a single popup shows at a time
+// and a tap anywhere else (or Escape) dismisses it.
+const TipContext = React.createContext<{ openId: string | null; setOpenId: React.Dispatch<React.SetStateAction<string | null>> }>({ openId: null, setOpenId: () => {} });
+
+function TipProvider({ children }: { children: React.ReactNode }) {
+    const [openId, setOpenId] = useState<string | null>(null);
+    useEffect(() => {
+        if (openId === null) return;
+        const close = () => setOpenId(null);
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenId(null); };
+        // Chips stop propagation on their own clicks, so this only fires for taps elsewhere.
+        document.addEventListener('click', close);
+        document.addEventListener('keydown', onKey);
+        return () => { document.removeEventListener('click', close); document.removeEventListener('keydown', onKey); };
+    }, [openId]);
+    return <TipContext.Provider value={{ openId, setOpenId }}>{children}</TipContext.Provider>;
+}
+
 // A skill tag that reveals a plain-English explanation on hover (desktop) or tap (mobile).
 function SkillChip({ name, info, accent, isNarrow }: { name: string; info: string; accent?: boolean; isNarrow: boolean }) {
-    const [open, setOpen] = useState(false);
-    const hover = isNarrow ? {} : { onMouseEnter: () => setOpen(true), onMouseLeave: () => setOpen(false) };
+    const id = React.useId();
+    const { openId, setOpenId } = React.useContext(TipContext);
+    const open = openId === id;
+    // Desktop hovers open/close directly; opening one always replaces any other.
+    const hover = isNarrow ? {} : {
+        onMouseEnter: () => setOpenId(id),
+        onMouseLeave: () => setOpenId(prev => (prev === id ? null : prev)),
+    };
     return (
-        <span style={{ position: 'relative', display: 'inline-block' }} {...hover}>
+        <span style={{ position: 'relative', display: 'inline-block' }} {...hover} onClick={e => e.stopPropagation()}>
             <button
-                onClick={() => setOpen(o => !o)}
-                onFocus={() => setOpen(true)}
-                onBlur={() => setOpen(false)}
+                onClick={() => setOpenId(prev => (prev === id ? null : id))}
+                onFocus={() => setOpenId(id)}
+                onBlur={() => setOpenId(prev => (prev === id ? null : prev))}
                 aria-expanded={open}
                 style={{
                     ...mono, padding: '7px 11px', border: '2px solid var(--text-primary)',
@@ -151,6 +195,134 @@ function SkillChip({ name, info, accent, isNarrow }: { name: string; info: strin
     );
 }
 
+function prefersReducedMotion() {
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// Fades + lifts its children into view the first time they're scrolled to.
+function Reveal({ children, style, delay = 0 }: { children: React.ReactNode; style?: React.CSSProperties; delay?: number }) {
+    const ref = useRef<HTMLDivElement | null>(null);
+    const [shown, setShown] = useState(false);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        if (prefersReducedMotion()) { setShown(true); return; }
+        const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { setShown(true); io.disconnect(); } }, { threshold: 0.1, rootMargin: '0px 0px -6% 0px' });
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
+    return (
+        <div ref={ref} style={{ ...style, opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(20px)', transition: `opacity 0.55s ease ${delay}ms, transform 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}ms` }}>
+            {children}
+        </div>
+    );
+}
+
+// Counts up from 0 to `to` the first time it scrolls into view.
+function CountUp({ to, suffix = '', duration = 1100 }: { to: number; suffix?: string; duration?: number }) {
+    const ref = useRef<HTMLSpanElement | null>(null);
+    const [val, setVal] = useState(0);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        if (prefersReducedMotion()) { setVal(to); return; }
+        let raf = 0; let start = 0;
+        const io = new IntersectionObserver(es => {
+            if (!es[0].isIntersecting) return;
+            io.disconnect();
+            const step = (t: number) => {
+                if (!start) start = t;
+                const p = Math.min(1, (t - start) / duration);
+                setVal(Math.round(to * (1 - Math.pow(1 - p, 3))));
+                if (p < 1) raf = requestAnimationFrame(step);
+            };
+            raf = requestAnimationFrame(step);
+        }, { threshold: 0.5 });
+        io.observe(el);
+        return () => { io.disconnect(); cancelAnimationFrame(raf); };
+    }, [to, duration]);
+    return <span ref={ref}>{val}{suffix}</span>;
+}
+
+// The request path: auto-highlights each step in turn, and pins to whatever you hover.
+function FlowDiagram({ isNarrow }: { isNarrow: boolean }) {
+    const [active, setActive] = useState(0);
+    const [hover, setHover] = useState<number | null>(null);
+    useEffect(() => {
+        if (prefersReducedMotion()) return;
+        const id = setInterval(() => setActive(a => (a + 1) % FLOW.length), 1700);
+        return () => clearInterval(id);
+    }, []);
+    const shown = hover ?? active;
+    return (
+        <div>
+            <div style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', alignItems: 'stretch' }}>
+                {FLOW.map((step, i) => {
+                    const on = hover === null ? active === i : hover === i;
+                    return (
+                        <React.Fragment key={step.label}>
+                            <div
+                                onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+                                onClick={() => setHover(h => (h === i ? null : i))}
+                                style={{ flex: 1, cursor: 'pointer', border: '2px solid var(--text-primary)', padding: '18px', transition: 'background 0.3s, color 0.3s, box-shadow 0.2s', background: on ? 'var(--accent)' : 'var(--surface)', color: on ? 'var(--accent-text)' : 'var(--text-primary)', boxShadow: on ? '5px 5px 0 var(--text-primary)' : 'none' }}>
+                                <div style={{ fontFamily: DISPLAY, fontSize: '21px', textTransform: 'uppercase', lineHeight: 1 }}>{step.label}</div>
+                                <div style={{ ...mono, marginTop: '8px', opacity: 0.75 }}>{step.sub}</div>
+                            </div>
+                            {i < FLOW.length - 1 && (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isNarrow ? '6px 0' : '0 8px', fontFamily: DISPLAY, fontSize: '24px', color: 'var(--text-primary)', transition: 'opacity 0.3s', opacity: hover === null && (active === i || active === i + 1) ? 1 : 0.35 }}>
+                                    {isNarrow ? '↓' : '→'}
+                                </div>
+                            )}
+                        </React.Fragment>
+                    );
+                })}
+            </div>
+            <div style={{ marginTop: '16px', border: '2px solid var(--text-primary)', background: 'var(--page)', padding: '14px 16px', minHeight: '66px', display: 'flex', alignItems: 'center' }}>
+                <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.55, fontWeight: 500, color: 'var(--text-primary)' }}>
+                    <span style={{ ...mono, color: 'var(--accent-deep, var(--text-primary))', marginRight: '8px' }}>{FLOW[shown].label}</span>
+                    {FLOW[shown].detail}
+                </p>
+            </div>
+        </div>
+    );
+}
+
+const NORM_EXAMPLES = [
+    { field: 'Languages — multi-select', raw: '["SQL", "Python"]', out: '[{ name: "SQL" }, { name: "Python" }]', note: 'The REST API sends plain strings; the old SDK gave objects — so the adapter wraps each value back into { name }.' },
+    { field: 'Summary — AI text', raw: '{ state: "generated", value: "A SQL cheat sheet…" }', out: '"A SQL cheat sheet…"', note: 'AI fields arrive as an object with a status. The UI just wants the text, so normalize pulls out value.' },
+    { field: 'Final Language — formula', raw: '"SQL, Python"', out: '["SQL", "Python"]', note: 'A formula returns one comma-joined string, but the card renders a list — so it gets split back apart.' },
+];
+
+// "Show, don't tell": a live before/after of the normalization layer.
+function NormalizeDemo() {
+    const [i, setI] = useState(0);
+    const ex = NORM_EXAMPLES[i];
+    const codeBox: React.CSSProperties = { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '12.5px', lineHeight: 1.5, background: 'var(--surface-2)', border: '1.5px solid var(--ink-line)', padding: '12px 14px', wordBreak: 'break-word', color: 'var(--text-primary)' };
+    const tag: React.CSSProperties = { ...mono, fontSize: '9px', color: 'var(--text-muted)', marginBottom: '5px' };
+    return (
+        <div style={{ border: '2px solid var(--text-primary)', background: 'var(--page)', padding: '18px', marginTop: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                <div style={{ ...mono, color: 'var(--accent-deep, var(--text-primary))' }}>// Normalize · live example</div>
+                <button onClick={() => setI(n => (n + 1) % NORM_EXAMPLES.length)}
+                    style={{ ...mono, fontSize: '10px', cursor: 'pointer', padding: '9px 13px', border: '2px solid var(--text-primary)', background: 'var(--accent)', color: 'var(--accent-text)' }}>
+                    See another →
+                </button>
+            </div>
+            <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '12px' }}>{ex.field}</div>
+            <div>
+                <div style={tag}>Airtable sends</div>
+                <div style={codeBox}>{ex.raw}</div>
+            </div>
+            <div style={{ textAlign: 'center', fontFamily: DISPLAY, fontSize: '20px', color: 'var(--text-primary)', margin: '6px 0' }}>↓</div>
+            <div>
+                <div style={tag}>What the UI reads</div>
+                <div style={{ ...codeBox, border: '2px solid var(--text-primary)' }}>{ex.out}</div>
+            </div>
+            <p style={{ margin: '14px 0 0', fontSize: '13px', lineHeight: 1.55, fontWeight: 500, color: 'var(--text-muted)' }}>{ex.note}</p>
+        </div>
+    );
+}
+
 export default function About() {
     const isNarrow = useIsNarrow();
     const body: React.CSSProperties = { fontSize: isNarrow ? '15px' : '16px', lineHeight: 1.7, fontWeight: 500, color: 'var(--text-muted)', maxWidth: '70ch' };
@@ -158,6 +330,7 @@ export default function About() {
     const wrap: React.CSSProperties = { maxWidth: '1040px', margin: '0 auto' };
 
     return (
+        <TipProvider>
         <div style={{ minHeight: '100dvh', background: 'var(--page)', display: 'flex', flexDirection: 'column' }}>
             <ScrollProgress />
             <div style={{ position: 'sticky', top: 0, zIndex: 1200 }}><TopNav /></div>
@@ -168,79 +341,82 @@ export default function About() {
                 backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)',
                 backgroundSize: '40px 40px',
             }}>
-                <div style={wrap}>
+                <Reveal style={wrap}>
                     <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '16px' }}>// Engineering write-up</div>
                     <h1 style={{ margin: 0, fontFamily: DISPLAY, fontSize: 'clamp(40px, 9vw, 88px)', textTransform: 'uppercase', lineHeight: 0.92, color: 'var(--text-primary)' }}>
                         How it&apos;s built
                     </h1>
                     <p style={{ ...body, margin: '20px 0 24px' }}>
-                        DevDeck is a standalone, mobile-first web app that surfaces an Airtable base
-                        <em> outside </em> of Airtable. Airtable&apos;s own Interface Extensions only run on
-                        desktop inside its runtime — this project re-implements that data layer on the
-                        Airtable REST API so the same tools work on a phone, installable as a PWA, with the
-                        secret token kept safely server-side.
+                        Curious how it works? Here&apos;s the whole thing, start to finish — friendly enough
+                        for a new developer, honest enough for a fellow engineer. DevDeck is a standalone,
+                        mobile-first web app that surfaces an Airtable base <em>outside</em> of Airtable.
+                        Airtable&apos;s own Interface Extensions only run on desktop inside its runtime, so this
+                        project re-implements that data layer on the Airtable REST API — the same tools now work
+                        on a phone, install as a PWA, and keep the secret token safely on the server.
                     </p>
+                    <div style={{ ...mono, color: 'var(--text-muted)', fontSize: '9px', marginBottom: '10px' }}>// Hover or tap any tag for what it is</div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {CHIPS.map(c => (
-                            <span key={c} style={{ ...mono, padding: '6px 11px', border: '2px solid var(--text-primary)', background: 'var(--surface)', color: 'var(--text-primary)' }}>{c}</span>
+                        {CHIPS.map(c => <SkillChip key={c.name} name={c.name} info={c.info} isNarrow={isNarrow} />)}
+                    </div>
+                </Reveal>
+            </header>
+
+            {/* ── By the numbers ──────────────────────────────────────────────── */}
+            <section style={{ ...section, paddingTop: isNarrow ? '26px' : '34px', paddingBottom: isNarrow ? '26px' : '34px' }}>
+                <Reveal style={{ maxWidth: '1040px', margin: '0 auto' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '2px', background: 'var(--text-primary)', border: '2px solid var(--text-primary)' }}>
+                        {STATS.map(s => (
+                            <div key={s.label} style={{ background: 'var(--page)', padding: isNarrow ? '18px 14px' : '24px 18px' }}>
+                                <div style={{ fontFamily: DISPLAY, fontSize: 'clamp(34px, 7vw, 54px)', lineHeight: 1, color: 'var(--text-primary)' }}>
+                                    <CountUp to={s.to} suffix={s.suffix} />
+                                </div>
+                                <div style={{ ...mono, color: 'var(--text-muted)', marginTop: '8px' }}>{s.label}</div>
+                            </div>
                         ))}
                     </div>
-                </div>
-            </header>
+                </Reveal>
+            </section>
 
             {/* ── 01 · Request flow ───────────────────────────────────────────── */}
             <section style={section}>
-                <div style={wrap}>
+                <Reveal style={wrap}>
                     <Eyebrow n="01" text="Request flow" />
                     <Heading>One secure path</Heading>
                     <p style={{ ...body, marginTop: 0, marginBottom: '26px' }}>
                         The rule that shapes everything: the Airtable token must never reach the browser.
                         The client calls a thin serverless proxy that attaches the token and forwards to
                         Airtable. Mapbox uses a separate, public token and is safe to call directly.
+                        <em> Hover any step</em> to see what it does.
                     </p>
-                    <div style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', alignItems: 'stretch' }}>
-                        {FLOW.map((step, i) => (
-                            <React.Fragment key={step.label}>
-                                <div style={{ flex: 1, border: '2px solid var(--text-primary)', padding: '18px', background: i === 1 ? 'var(--accent)' : 'var(--surface)', color: i === 1 ? 'var(--accent-text)' : 'var(--text-primary)' }}>
-                                    <div style={{ fontFamily: DISPLAY, fontSize: '21px', textTransform: 'uppercase', lineHeight: 1 }}>{step.label}</div>
-                                    <div style={{ ...mono, marginTop: '8px', opacity: 0.75 }}>{step.sub}</div>
-                                </div>
-                                {i < FLOW.length - 1 && (
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isNarrow ? '4px 0' : '0 6px', fontFamily: DISPLAY, fontSize: '24px', color: 'var(--text-primary)' }}>
-                                        {isNarrow ? '↓' : '→'}
-                                    </div>
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </div>
-                </div>
+                    <FlowDiagram isNarrow={isNarrow} />
+                </Reveal>
             </section>
 
             {/* ── 02 · Tech stack ─────────────────────────────────────────────── */}
             <section style={section}>
-                <div style={wrap}>
+                <Reveal style={wrap}>
                     <Eyebrow n="02" text="Tech stack" />
                     <Heading>What it&apos;s made of</Heading>
                     <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(3, 1fr)', gap: isNarrow ? '14px' : '18px' }}>
                         {STACK.map(row => <Card key={row.k}><KV k={row.k} v={row.v} /></Card>)}
                     </div>
-                </div>
+                </Reveal>
             </section>
 
             {/* ── 03 · Hosting & delivery ─────────────────────────────────────── */}
             <section style={section}>
-                <div style={wrap}>
+                <Reveal style={wrap}>
                     <Eyebrow n="03" text="Hosting & delivery" />
                     <Heading>How it ships</Heading>
                     <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(2, 1fr)', gap: isNarrow ? '14px' : '18px' }}>
                         {HOSTING.map(row => <Card key={row.k}><KV k={row.k} v={row.v} /></Card>)}
                     </div>
-                </div>
+                </Reveal>
             </section>
 
             {/* ── 04 · Security ───────────────────────────────────────────────── */}
             <section style={{ ...section, background: 'var(--surface)' }}>
-                <div style={wrap}>
+                <Reveal style={wrap}>
                     <Eyebrow n="04" text="Security" />
                     <Heading>Keeping secrets secret</Heading>
                     <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(2, 1fr)', gap: isNarrow ? '14px' : '18px' }}>
@@ -251,12 +427,12 @@ export default function About() {
                             </div>
                         ))}
                     </div>
-                </div>
+                </Reveal>
             </section>
 
             {/* ── 05 · Architecture ───────────────────────────────────────────── */}
             <section style={section}>
-                <div style={wrap}>
+                <Reveal style={wrap}>
                     <Eyebrow n="05" text="Architecture" />
                     <Heading>The compatibility adapter</Heading>
                     <p style={{ ...body, marginTop: 0 }}>
@@ -275,12 +451,13 @@ export default function About() {
                         Two touches keep it quick: the base schema is cached on the server between requests, and
                         each table fetches only the fields it actually shows — so pages open fast and payloads stay small.
                     </p>
-                </div>
+                    <NormalizeDemo />
+                </Reveal>
             </section>
 
             {/* ── 06 · Skills ─────────────────────────────────────────────────── */}
             <section style={{ ...section, background: 'var(--surface)' }}>
-                <div style={wrap}>
+                <Reveal style={wrap}>
                     <Eyebrow n="06" text="Skills demonstrated" />
                     <Heading>Engineering &amp; design</Heading>
                     <p style={{ ...body, marginTop: 0, marginBottom: '24px', fontSize: isNarrow ? '14px' : '15px' }}>
@@ -300,12 +477,12 @@ export default function About() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </Reveal>
             </section>
 
             {/* ── 07 · Modules ────────────────────────────────────────────────── */}
             <section style={section}>
-                <div style={wrap}>
+                <Reveal style={wrap}>
                     <Eyebrow n="07" text="The modules" />
                     <Heading>Five interfaces</Heading>
                     <div style={{ border: '2px solid var(--text-primary)' }}>
@@ -335,7 +512,7 @@ export default function About() {
                             <ArrowLeftIcon size={14} weight="bold" /> Back to home
                         </Link>
                     </div>
-                </div>
+                </Reveal>
             </section>
 
             {/* ── Footer ──────────────────────────────────────────────────────── */}
@@ -344,5 +521,6 @@ export default function About() {
                 <span style={{ ...mono, color: 'var(--text-muted)' }}>// built for the go</span>
             </footer>
         </div>
+        </TipProvider>
     );
 }
