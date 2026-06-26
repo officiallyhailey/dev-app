@@ -5,7 +5,7 @@ outside of Airtable. Airtable's own Interface Extensions only run on desktop ins
 the Airtable runtime; DevDeck re-implements that data layer on top of the Airtable
 **REST API** so the same interfaces work on a phone, installable as a PWA.
 
-It ships five sections — **Cheat Sheets, Dev Work, Events, Jobs** (Mapbox map) and
+It ships five sections — **Cheat Sheets, Dev Work, Agenda, Jobs** (Mapbox map) and
 **Tools** — behind a single-password gate, in a neutral-gray + acid-yellow brutalist theme.
 
 ---
@@ -16,11 +16,11 @@ It ships five sections — **Cheat Sheets, Dev Work, Events, Jobs** (Mapbox map)
 | -------------- | ---------------------------------------------------------------- |
 | Framework      | **Next.js 16** (App Router) + **React 19**, TypeScript           |
 | Data fetching  | **SWR** (suspense mode) over a server-side API proxy             |
-| Data source    | **Airtable REST API** (`api.airtable.com`)                       |
+| Data source    | **Airtable REST API** (`api.airtable.com` + `content.airtable.com`) |
 | Maps           | **Mapbox** via `react-map-gl` + `mapbox-gl` (Jobs only)          |
 | Icons          | `@phosphor-icons/react`                                          |
 | Fonts          | `next/font` — **Anton** (display) + **Montserrat** (body)        |
-| Hosting        | **Vercel** (static pages + serverless route handlers)            |
+| Hosting        | **Vercel** (static pages + serverless route handlers), installable PWA |
 
 ---
 
@@ -42,11 +42,12 @@ Browser (client components)
 proxy.ts (Next.js "proxy" = middleware) guards every route: no valid session cookie → redirect to /login.
 ```
 
-Three layers do the heavy lifting:
+Four layers do the heavy lifting:
 
 1. **The proxy** (`app/api/airtable/*`) — server route handlers that forward to Airtable
    with the secret token. Handles pagination, create/update/delete, schema, and base64
-   attachment uploads.
+   attachment uploads. The schema response is cached in-memory per server instance, and
+   record reads request only the fields each table actually uses (`lib/airtable/projection.ts`).
 2. **The SDK-compatibility adapter** (`lib/airtable/`) — the interfaces were ported from
    Airtable Blocks Extensions, which expose `useBase()`, `useRecords()`, and record/table
    objects with methods like `getCellValue()`. This layer re-creates that exact surface on
@@ -54,6 +55,9 @@ Three layers do the heavy lifting:
    between REST value shapes and the shapes the Blocks SDK returned.
 3. **The auth gate** (`proxy.ts` + `lib/auth.ts` + `/login`) — one shared password →
    an HMAC-signed, httpOnly session cookie.
+4. **Shared brutalist UI** (`lib/components/`) — one nav, one modal size, one help-popup
+   pattern, one loading state, and a scroll-progress bar, so every page looks and behaves
+   the same.
 
 ---
 
@@ -63,37 +67,45 @@ Three layers do the heavy lifting:
 webapp/
 ├── app/                            # Next.js App Router: routes, pages, API
 │   ├── layout.tsx                  # Root layout: loads fonts, global CSS, metadata/PWA
-│   ├── globals.css                 # Base CSS reset only
+│   ├── globals.css                 # Base reset + shared keyframes (shimmer, marquee, ping…)
 │   ├── theme.css                   # ★ Design tokens — colours, light/dark palette, nav height
 │   ├── fonts.ts                    # next/font: Anton (display) + Montserrat (body)
-│   ├── page.tsx                    # Landing page (hero, marquee, section cards)
+│   ├── page.tsx                    # Landing: full-screen hero, scrolling background, section cards
+│   ├── about/page.tsx              # "How it's built" architecture write-up (portfolio piece)
 │   ├── login/page.tsx              # Password gate UI
 │   │
 │   ├── cheatsheet/page.tsx         # ┐
 │   ├── devwork/page.tsx            # │ The five interfaces. Each is a self-contained
-│   ├── events/page.tsx             # ├─ client component ported from an Airtable
-│   ├── jobs/page.tsx               # │ Interface Extension (see ../*-interface.tsx).
+│   ├── events/page.tsx             # ├─ client component ported from an Airtable Interface
+│   ├── jobs/page.tsx               # │ Extension (the /events route is labelled "Agenda").
 │   ├── tools/page.tsx              # ┘ Wrapped in <Shell> for the shared nav.
 │   │
 │   └── api/                        # Server-only route handlers (hold the Airtable token)
 │       ├── login/route.ts          # POST password → set signed session cookie
 │       └── airtable/
-│           ├── schema/route.ts             # GET base tables + fields (metadata API)
-│           ├── records/[table]/route.ts    # GET (paginated list) + POST (create)
+│           ├── schema/route.ts             # GET base tables + fields (metadata API, cached)
+│           ├── records/[table]/route.ts    # GET (paginated list, field-projected) + POST (create)
 │           ├── records/[table]/[id]/route.ts # PATCH (update) + DELETE
 │           └── upload/[id]/[field]/route.ts  # POST base64 attachment (content API)
 │
 ├── lib/
 │   ├── auth.ts                     # HMAC sign/verify for the session cookie (Web Crypto)
 │   ├── useIsNarrow.ts              # matchMedia hook for responsive inline styles (<768px)
+│   ├── help.ts                     # Help-popup content, keyed per page
 │   ├── components/
 │   │   ├── TopNav.tsx              # Shared nav: desktop bar + mobile hamburger
-│   │   └── Shell.tsx               # TopNav + scrollable <main> wrapper for interfaces
+│   │   ├── Shell.tsx               # TopNav + ScrollProgress + scrollable <main> wrapper
+│   │   ├── ScrollProgress.tsx      # Top scroll-progress bar (accent; pings at the bottom)
+│   │   ├── MarqueeLoader.tsx       # Data-loading state: scrolling page-name marquee
+│   │   ├── InfoModal.tsx           # HelpButton "?" + per-page help popup
+│   │   ├── LiveField.tsx           # Shimmer-until-filled field (live AI preview on create)
+│   │   └── modalStyle.ts           # Shared modal sizing: 80vw desktop / full-screen mobile, below nav
 │   └── airtable/                   # ★ The SDK-compatibility data layer
 │       ├── server.ts               # Server helper: token + fetch wrapper + error JSON
 │       ├── hooks.tsx               # useBase() / useRecords() (SWR) + <AirtableBoundary>
 │       ├── models.ts               # Base / Table / Field / Record classes + write methods
 │       ├── normalize.ts            # Translate REST value shapes ↔ Blocks SDK shapes
+│       ├── projection.ts           # Per-table field allowlist (fetch only what's used)
 │       ├── fieldTypes.ts           # FieldType enum (Airtable field-type string constants)
 │       ├── types.ts                # Raw REST response types
 │       └── keys.ts                 # SWR cache keys (shared by hooks + mutations)
@@ -105,10 +117,6 @@ webapp/
 ├── .env.local.example              # Template for required env vars (copy to .env.local)
 └── next.config.ts / tsconfig.json / package.json
 ```
-
-> The original Airtable Interface Extension sources live one level up
-> (`../cheatsheet-interface.tsx`, etc.). They are **not** part of this app — they're kept
-> only as the reference the ported `app/*/page.tsx` files were derived from.
 
 ---
 
@@ -135,11 +143,14 @@ keys in the Vercel dashboard (**Settings → Environment Variables**).
 Requires Node 20+.
 
 ```bash
-cd webapp
+cd webapp                           # the app lives here, not the repo root
 npm install
-cp .env.local.example .env.local   # then fill in the values
-npm run dev                        # http://localhost:3000
+cp .env.local.example .env.local    # then fill in the values
+npm run dev                         # open http://localhost:3000 in a real browser
 ```
+
+The app opens on a password screen (`APP_PASSWORD`); everything else is behind it. Open it
+in a normal browser rather than an embedded preview, since the login relies on a cookie.
 
 Scripts: `npm run dev` (dev server), `npm run build` (production build), `npm start`
 (serve the build).
@@ -157,15 +168,22 @@ Scripts: `npm run dev` (dev server), `npm run build` (production build), `npm st
 
 ## How the Airtable integration works
 
-**Reading.** `useBase()` fetches the base schema once; `useRecords(table)` fetches a table's
-records (all pages) and wraps each row in a `RecordModel`. Components call
-`record.getCellValue(field)` / `getCellValueAsString(field)` exactly as they did under the
-Blocks SDK — `normalize.ts` reshapes REST values (e.g. multi-selects, `aiText`, attachments,
-formulas) into the shapes that code expects.
+**Reading.** `useBase()` fetches the base schema once (cached server-side); `useRecords(table)`
+fetches a table's records (all pages, only the fields that table uses) and wraps each row in a
+`RecordModel`. Components call `record.getCellValue(field)` / `getCellValueAsString(field)`
+exactly as they did under the Blocks SDK — `normalize.ts` reshapes REST values (multi-selects,
+`aiText`, attachments, formulas) into the shapes that code expects. While a table loads, the
+`<AirtableBoundary>` suspense fallback shows the scrolling `MarqueeLoader`.
 
 **Writing.** `table.createRecordAsync()`, `updateRecordAsync()` and `deleteRecordAsync()` on
 `TableModel` (in `models.ts`) POST/PATCH/DELETE through the proxy, then revalidate the SWR
-cache so the UI updates. File attachments are uploaded as base64 via the content-API route.
+cache so the UI updates. Attachments need care: new files upload as base64 via the content-API
+route (which *appends*), so an update first PATCHes the kept set as `[{id}]` (removing any
+dropped attachments), then uploads the new files.
+
+**AI fields.** Several tables have Airtable `aiText`/formula fields that populate a few seconds
+after a record is created from a link. The "New" forms on Tools and Jobs create the record,
+then poll (`useRecords` refresh) and reveal those fields with `LiveField`'s shimmer-then-fill.
 
 **Config that used to be Airtable UI.** Blocks Extensions let users pick fields and settings
 in Airtable's builder (`useCustomProperties`). In a standalone app there's no builder, so
@@ -179,15 +197,18 @@ table is pinned by id where a base has many tables.
    id (find ids via the `/api/airtable/schema` route or the Airtable API docs).
 3. Wrap the export in `<Shell>` so it gets the shared nav, and use `height: 100%` on the root
    (the Shell owns the viewport height).
-4. Add the route to the `LINKS` array in `lib/components/TopNav.tsx` and the landing page
-   `SECTIONS` list in `app/page.tsx`.
+4. Add the route to the `LINKS` array in `lib/components/TopNav.tsx` and the landing-page
+   `SECTIONS` list in `app/page.tsx`. List its fields in `lib/airtable/projection.ts`, and
+   add a help entry in `lib/help.ts`.
+5. For modals, spread `modalOverlayStyle`/`modalCardStyle` so the popup matches every other
+   one (sized below the nav, with a reachable close button).
 
 ---
 
 ## Theming
 
 All colours and the light/dark palette live in **`app/theme.css`** as CSS custom properties
-(`--page`, `--surface`, `--text-primary`, `--accent`, …). Light/dark follows the system
-setting via `prefers-color-scheme`. Anton/Montserrat are exposed as `--font-display` /
-`--font-body`. To re-skin the app, edit `theme.css` — components reference the tokens, not
-raw hex values.
+(`--page`, `--surface`, `--text-primary`, `--accent`, `--nav-h`, …). Light/dark follows the
+system setting via `prefers-color-scheme`. Anton/Montserrat are exposed as `--font-display` /
+`--font-body`. Shared animations (shimmer, marquee, ping, bob) live in `app/globals.css`. To
+re-skin the app, edit `theme.css` — components reference the tokens, not raw hex values.

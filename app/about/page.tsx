@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRightIcon, ArrowLeftIcon } from '@phosphor-icons/react';
 import { TopNav } from '@/lib/components/TopNav';
@@ -27,7 +27,7 @@ const STACK: { k: string; v: string }[] = [
     { k: 'Data fetching', v: 'SWR (suspense mode)' },
     { k: 'Maps', v: 'Mapbox GL · react-map-gl' },
     { k: 'Icons / Fonts', v: 'Phosphor · next/font' },
-    { k: 'Tooling', v: 'ESLint-clean · npm' },
+    { k: 'Tooling', v: 'TypeScript strict · npm' },
 ];
 
 const HOSTING: { k: string; v: string }[] = [
@@ -44,15 +44,39 @@ const SECURITY: { t: string; d: string }[] = [
     { t: 'Public vs private keys', d: 'Only the public Mapbox token is exposed (NEXT_PUBLIC_*). Secrets are git-ignored and set in the host dashboard.' },
 ];
 
-const ENG_SKILLS = ['REST API integration', 'Serverless functions', 'Auth & cryptography', 'Data normalization', 'Client-side caching', 'TypeScript', 'Responsive / PWA', 'Maps & geocoding', 'State management'];
-const DESIGN_SKILLS = ['Design tokens', 'Brutalist design system', 'Typography & font pairing', 'Light / dark theming', 'Mobile-first layout', 'Component architecture', 'Interaction / UX states', 'Accessibility-minded'];
+// Each tag carries a plain-English explanation shown on hover/tap — written to teach,
+// not to impress. Keep these accurate to what the code actually does.
+const ENG_SKILLS: { name: string; info: string }[] = [
+    { name: 'REST API integration', info: 'The app talks to Airtable over plain HTTP — listing, creating, updating and deleting records — instead of using its desktop-only SDK. That decoupling is exactly what lets the same screens run on a phone.' },
+    { name: 'Serverless functions', info: 'Next.js route handlers run on demand on the server. They hold the secret API token and forward every Airtable request, so the credential never ships to the browser.' },
+    { name: 'Auth & cryptography', info: 'One shared password mints an HMAC-SHA256 signed cookie using the Web Crypto API. The signature proves the cookie is genuine on every request, with nothing sensitive stored on the client.' },
+    { name: 'Data normalization', info: "Airtable's REST values — multi-selects, AI text, attachments, formulas — come back shaped differently than its SDK returned them. A small layer reshapes each one so the ported UI reads it unchanged." },
+    { name: 'Client-side caching', info: 'SWR keeps fetched records in memory, dedupes identical requests, and revalidates right after a write — so the screen always reflects the latest data without manual refetching.' },
+    { name: 'Server-side caching', info: 'The base structure rarely changes, so the schema is cached on the server between requests. That collapses the schema-then-records waterfall and makes every page open noticeably faster.' },
+    { name: 'Payload optimization', info: 'Each table requests only the fields it actually shows, through a per-table allowlist. Smaller responses mean less to download and parse — a real win on a mobile connection.' },
+    { name: 'TypeScript', info: 'The codebase is typed end to end. The compiler catches mistakes before they ship, and the types double as live documentation of every data shape.' },
+    { name: 'Responsive & PWA', info: "Mobile-first layouts plus a web manifest and themed icons let the app install to a phone's home screen and launch full-screen, like a native app." },
+    { name: 'Maps & geocoding', info: "Mapbox turns each job's address into coordinates (geocoding) and plots it on an interactive map. That token is public by design and meant to be restricted to the app's domain." },
+    { name: 'State management', info: 'React state — with a little help from SWR — drives the live parts: search, filters, the map camera, staged edits, and AI fields that stream in a few seconds after you save.' },
+];
+const DESIGN_SKILLS: { name: string; info: string }[] = [
+    { name: 'Design tokens', info: 'Every colour, both fonts, and the nav height live as CSS variables in one file. Components reference the tokens, so re-skinning the entire app is a single-file change.' },
+    { name: 'Brutalist design system', info: "A deliberate visual language: hard 2px borders, flat blocks, offset drop-shadows and oversized condensed type. Bold and legible, with no decoration that doesn't earn its place." },
+    { name: 'Typography & font pairing', info: 'Anton — a heavy condensed display face — carries the headlines, while Montserrat handles body text. The strong contrast between the two is what creates the hierarchy.' },
+    { name: 'Light / dark theming', info: 'Two complete palettes that follow the device’s system setting via prefers-color-scheme, each tuned on its own so contrast holds up in either mode.' },
+    { name: 'Mobile-first layout', info: 'Screens are designed for a phone first and then scale up — full-width search, stacked panels, a hamburger menu — so the small-screen experience is never an afterthought.' },
+    { name: 'Component architecture', info: 'Shared building blocks — one nav, one modal size, one help popup, one loading state — keep every page consistent and make new sections quick to add.' },
+    { name: 'Interaction & motion', info: 'Purposeful movement: a scroll-progress bar, a 3D image coverflow, shimmer-to-fill AI fields, and a marquee loading screen — all of which back off when the user prefers reduced motion.' },
+    { name: 'UX states', info: 'Every moment is designed for: helpful empty states, live loading, inline guidance in forms, and a confirm step before anything destructive.' },
+    { name: 'Accessibility-minded', info: 'Semantic, focusable controls; aria labels on icon-only buttons; modals that close on Escape; and motion that honours reduced-motion preferences.' },
+];
 
 const MODULES: { name: string; what: string; ex: string }[] = [
-    { name: 'Cheat Sheets', what: 'Searchable reference library', ex: 'Read · create · live AI fields' },
-    { name: 'Dev Work', what: 'Snippets, links & files', ex: 'Edit · attachment uploads' },
-    { name: 'Agenda', what: 'Agenda & deadlines timeline', ex: 'Full create / update / delete' },
-    { name: 'Jobs', what: 'Opportunities on a map', ex: 'Mapbox · geocoding · edit' },
-    { name: 'Tools', what: 'Categorised resource directory', ex: 'Read · grouping by field' },
+    { name: 'Cheat Sheets', what: 'Searchable reference library', ex: 'Create · search · live AI fields' },
+    { name: 'Dev Work', what: 'Project log with image showcase', ex: 'Create · edit · attachment banner' },
+    { name: 'Agenda', what: 'Tasks, events & reminders', ex: 'Full create / update / delete' },
+    { name: 'Jobs', what: 'Opportunities on a map', ex: 'Create (link → AI) · map · geocoding' },
+    { name: 'Tools', what: 'Categorised resource directory', ex: 'Create (link → AI) · grouping' },
 ];
 
 const CHIPS = ['Next.js', 'React', 'TypeScript', 'SWR', 'Airtable API', 'Mapbox', 'Web Crypto', 'Vercel', 'PWA'];
@@ -91,9 +115,44 @@ function KV({ k, v }: { k: string; v: string }) {
     );
 }
 
+// A skill tag that reveals a plain-English explanation on hover (desktop) or tap (mobile).
+function SkillChip({ name, info, accent, isNarrow }: { name: string; info: string; accent?: boolean; isNarrow: boolean }) {
+    const [open, setOpen] = useState(false);
+    const hover = isNarrow ? {} : { onMouseEnter: () => setOpen(true), onMouseLeave: () => setOpen(false) };
+    return (
+        <span style={{ position: 'relative', display: 'inline-block' }} {...hover}>
+            <button
+                onClick={() => setOpen(o => !o)}
+                onFocus={() => setOpen(true)}
+                onBlur={() => setOpen(false)}
+                aria-expanded={open}
+                style={{
+                    ...mono, padding: '7px 11px', border: '2px solid var(--text-primary)',
+                    background: accent ? 'var(--accent)' : 'var(--page)',
+                    color: accent ? 'var(--accent-text)' : 'var(--text-primary)',
+                    cursor: isNarrow ? 'pointer' : 'help', lineHeight: 1,
+                }}
+            >
+                {name}
+            </button>
+            {open && (
+                <span role="tooltip" style={{
+                    position: 'absolute', bottom: 'calc(100% + 9px)', left: '50%', transform: 'translateX(-50%)',
+                    zIndex: 60, width: 'min(300px, 78vw)', padding: '12px 14px',
+                    border: '2px solid var(--text-primary)', background: 'var(--surface)', color: 'var(--text-primary)',
+                    boxShadow: '5px 5px 0 var(--text-primary)',
+                    fontFamily: 'var(--font-body)', fontSize: '13px', lineHeight: 1.55, fontWeight: 500,
+                    letterSpacing: 'normal', textTransform: 'none',
+                }}>
+                    {info}
+                </span>
+            )}
+        </span>
+    );
+}
+
 export default function About() {
     const isNarrow = useIsNarrow();
-    const padX = isNarrow ? '16px' : '32px';
     const body: React.CSSProperties = { fontSize: isNarrow ? '15px' : '16px', lineHeight: 1.7, fontWeight: 500, color: 'var(--text-muted)', maxWidth: '70ch' };
     const section: React.CSSProperties = { padding: isNarrow ? '36px 16px' : '56px 32px', borderTop: '2px solid var(--text-primary)' };
     const wrap: React.CSSProperties = { maxWidth: '1040px', margin: '0 auto' };
@@ -212,6 +271,10 @@ export default function About() {
                         <Card><KV k="Normalize" v="Translates REST value shapes ↔ the shapes the SDK returned (selects, AI text, attachments, formulas)" /></Card>
                         <Card><KV k="Mutations" v="create / update / delete proxy to Airtable, then revalidate the SWR cache" /></Card>
                     </div>
+                    <p style={{ ...body, marginTop: '20px' }}>
+                        Two touches keep it quick: the base schema is cached on the server between requests, and
+                        each table fetches only the fields it actually shows — so pages open fast and payloads stay small.
+                    </p>
                 </div>
             </section>
 
@@ -220,17 +283,20 @@ export default function About() {
                 <div style={wrap}>
                     <Eyebrow n="06" text="Skills demonstrated" />
                     <Heading>Engineering &amp; design</Heading>
+                    <p style={{ ...body, marginTop: 0, marginBottom: '24px', fontSize: isNarrow ? '14px' : '15px' }}>
+                        Hover (or tap) any tag for what it means and where it shows up in the app.
+                    </p>
                     <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : 'repeat(2, 1fr)', gap: isNarrow ? '20px' : '28px' }}>
                         <div>
                             <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '12px' }}>// Engineering</div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                {ENG_SKILLS.map(s => <span key={s} style={{ ...mono, padding: '7px 11px', border: '2px solid var(--text-primary)', background: 'var(--page)' }}>{s}</span>)}
+                                {ENG_SKILLS.map(s => <SkillChip key={s.name} name={s.name} info={s.info} isNarrow={isNarrow} />)}
                             </div>
                         </div>
                         <div>
                             <div style={{ ...mono, color: 'var(--text-muted)', marginBottom: '12px' }}>// Design</div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                {DESIGN_SKILLS.map(s => <span key={s} style={{ ...mono, padding: '7px 11px', border: '2px solid var(--text-primary)', background: 'var(--accent)', color: 'var(--accent-text)' }}>{s}</span>)}
+                                {DESIGN_SKILLS.map(s => <SkillChip key={s.name} name={s.name} info={s.info} accent isNarrow={isNarrow} />)}
                             </div>
                         </div>
                     </div>

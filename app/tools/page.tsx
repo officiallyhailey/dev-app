@@ -8,7 +8,6 @@ import { modalOverlayStyle, modalCardStyle } from '@/lib/components/modalStyle';
 import { HelpButton } from '@/lib/components/InfoModal';
 import { LiveField } from '@/lib/components/LiveField';
 type Field = any;
-type FieldConfig = any;
 import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, ArrowLeftIcon, CaretRightIcon, SquaresFourIcon, PlusIcon } from '@phosphor-icons/react';
 
 const ACCENT      = '#F5C13D'; // amber primary
@@ -75,21 +74,6 @@ function FaviconIcon({ url, iconSize }: { url: string | null; iconSize: number }
         );
     }
     return <LinkIcon size={iconSize} color={TEAL} weight="bold" />;
-}
-
-// ── Custom properties ─────────────────────────────────────────────────────────
-function getCustomProperties(base: ReturnType<typeof useBase>) {
-    const table = base.tables[0];
-    if (!table) return [];
-    const isSingleSelect = (f: { id: Field['id']; config: FieldConfig }) =>
-        f.config.type === FieldType.SINGLE_SELECT;
-    const singleSelectFields = table.fields.filter(isSingleSelect);
-    const defaultCategoryField =
-        singleSelectFields.find(f => f.name.toLowerCase().includes('category')) ?? singleSelectFields[0];
-    return [{
-        key: 'categoryField', label: 'Category', type: 'field' as const, table,
-        shouldFieldBeAllowed: isSingleSelect, defaultValue: defaultCategoryField,
-    }];
 }
 
 // ── Markdown ──────────────────────────────────────────────────────────────────
@@ -204,24 +188,6 @@ function ToolCard({ record, nameField, descSummaryField, faviconField, linkField
     );
 }
 
-// ── Spec row (divided mono readout) ───────────────────────────────────────────
-function SpecRow({ items }: { items: [string, string][] }) {
-    return (
-        <div style={{ display: 'flex', flexWrap: 'wrap', border: '1.5px solid var(--ink-line)', borderRadius: '5px', overflow: 'hidden' }}>
-            {items.map(([label, value], i) => (
-                <div key={label} style={{ flex: '1 1 120px', minWidth: 0, padding: '11px 14px', borderLeft: i === 0 ? 'none' : '1.5px solid var(--ink-line)' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</div>
-                    <div style={{ ...monoLabel, color: 'var(--text-muted)', marginTop: '4px' }}>{label}</div>
-                </div>
-            ))}
-        </div>
-    );
-}
-
-function fmtDate(ms: number): string {
-    if (!ms) return '—';
-    try { return new Date(ms).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' }); } catch { return '—'; }
-}
 
 // ── Tool detail — centered modal overlay ──────────────────────────────────────
 function ToolModal({ record, nameField, summaryField, linkField, orgField, categoryField, faviconField, createdField, onClose }: {
@@ -232,10 +198,7 @@ function ToolModal({ record, nameField, summaryField, linkField, orgField, categ
     const org      = orgField      ? record.getCellValueAsString(orgField)     : '';
     const link     = linkField     ? record.getCellValueAsString(linkField)    : '';
     const summary  = summaryField  ? record.getCellValueAsString(summaryField) : '';
-    const catValue = categoryField ? record.getCellValue(categoryField)        : null;
-    const category = catValue && typeof catValue === 'object' && 'name' in catValue ? (catValue as { name: string }).name : '';
     const favicon  = getFaviconUrl(record, faviconField);
-    const added    = fmtDate(getCreatedTime(record, createdField));
 
     useEffect(() => {
         const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };

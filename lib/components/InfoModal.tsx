@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QuestionIcon, XIcon } from '@phosphor-icons/react';
 import { useIsNarrow } from '@/lib/useIsNarrow';
 import { modalOverlayStyle, modalCardStyle } from './modalStyle';

@@ -7,7 +7,7 @@ import {modalOverlayStyle, modalCardStyle} from '@/lib/components/modalStyle';
 import {Shell} from '@/lib/components/Shell';
 import {HelpButton} from '@/lib/components/InfoModal';
 import {LiveField} from '@/lib/components/LiveField';
-import {Warning, X, Plus} from '@phosphor-icons/react';
+import {X, Plus} from '@phosphor-icons/react';
 // These were SDK model types; the ported UI only uses them as loose annotations.
 type Field = any;
 type Table = any;
@@ -590,8 +590,6 @@ function MapExtensionApp() {
     const [pinnedRecordId,     setPinnedRecordId]     = useState<string | null>(null);
     const mapRef = useRef<MapRef | null>(null);
     const [isMapReady,         setIsMapReady]         = useState(false);
-    const [isWarningDismissed, setIsWarningDismissed] = useState(false);
-    const [isPromptExpanded,   setIsPromptExpanded]   = useState(false);
     // State (not just the ref) so the loading overlay reliably clears on re-render.
     const [cameraReady,        setCameraReady]        = useState(false);
     // Stack map-over-list on phones instead of the desktop side-by-side split.
@@ -699,7 +697,6 @@ function MapExtensionApp() {
     };
 
     const suggestedPrompt: string | undefined = undefined;
-    const shouldShowWarning   = false; // SDK token-warning flow not used in standalone app
     const shouldWaitForGeocoding = isConfigured && hasGeocodingWork && geocodingStatus !== GeocodingStatus.Completed;
     const hideMapUntilReady   = !cameraReady || shouldWaitForGeocoding;
 
@@ -779,19 +776,6 @@ function MapExtensionApp() {
             `}</style>
 
             <div style={{width: '100%', height: '100%', display: 'flex', flexDirection: isNarrow ? 'column' : 'row', background: 'var(--page)', backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)', backgroundSize: '38px 38px', fontFamily: 'var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: isNarrow ? '12px' : '16px', gap: isNarrow ? '12px' : '16px', overflow: 'hidden'}}>
-
-                {/* Warning banner */}
-                {shouldShowWarning && (
-                    <div style={{position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, background: 'var(--neu-bg)', borderBottom: '1px solid var(--divider)', boxShadow: 'var(--neu-raised-sm)', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                            <Warning size={18} color="#d97706" />
-                            <p style={{margin: 0, fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500}}>Map configuration warning</p>
-                        </div>
-                        <div onClick={() => setIsWarningDismissed(true)} style={{width: '28px', height: '28px', borderRadius: '4px', background: 'var(--neu-bg)', boxShadow: 'var(--neu-raised-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)'}}>
-                            <X size={14} />
-                        </div>
-                    </div>
-                )}
 
                 {/* ── Mobile map/list toggle ─────────────────────────────── */}
                 {isNarrow && (

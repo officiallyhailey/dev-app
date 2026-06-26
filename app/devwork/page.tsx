@@ -27,7 +27,6 @@ const CREATED_ID    = 'fld615lytIyK4Llr6'; // createdTime
 
 // ── Accent (amber + ink) ──────────────────────────────────────────────────────
 const ACCENT      = '#F5C13D'; // amber primary
-const ACCENT_MID  = '#E3A81B'; // deeper amber
 const ACCENT_DEEP = '#E3A81B'; // amber for text on light
 const ACCENT_TEXT = '#2c2510'; // dark text on amber
 const INK         = '#23262e'; // charcoal (catalog line-art borders / dividers)
@@ -40,75 +39,6 @@ function formatDate(raw: string): string {
     } catch { return raw; }
 }
 
-// ── Section label ─────────────────────────────────────────────────────────────
-function SectionLabel({ text }: { text: string }) {
-    return (
-        <div style={{
-            display: 'inline-block',
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '9px', fontWeight: 700,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: '#fff', background: INK,
-            padding: '5px 11px', borderRadius: '4px', marginBottom: '12px',
-        }}>
-            // {text}
-        </div>
-    );
-}
-
-// ── Neumorphic button ─────────────────────────────────────────────────────────
-function NeuButton({ children, href, onClick, accent }: {
-    children: React.ReactNode;
-    href?: string;
-    onClick?: () => void;
-    accent?: boolean;
-}) {
-    const base: React.CSSProperties = {
-        display: 'inline-flex', alignItems: 'center', gap: '8px',
-        padding: '11px 22px', borderRadius: '14px',
-        fontSize: '13px', fontWeight: 600, letterSpacing: '0.02em',
-        cursor: 'pointer', textDecoration: 'none', border: 'none',
-        transition: 'box-shadow 0.15s, transform 0.1s',
-        userSelect: 'none',
-    };
-
-    const accentStyle: React.CSSProperties = {
-        ...base,
-        background: `linear-gradient(145deg, ${ACCENT_MID}, ${ACCENT})`,
-        color: ACCENT_TEXT,
-        boxShadow: `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`,
-    };
-    const neutralStyle: React.CSSProperties = {
-        ...base,
-        background: 'var(--neu-bg)',
-        color: 'var(--text-muted)',
-        boxShadow: 'var(--neu-raised-sm)',
-    };
-
-    const style = accent ? accentStyle : neutralStyle;
-
-    const onME = (e: React.MouseEvent) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.boxShadow = accent
-            ? `2px 2px 6px rgba(245,193,61,0.4), -1px -1px 4px rgba(255,255,255,0.2)`
-            : 'var(--neu-inset-sm)';
-        el.style.transform = 'scale(0.98)';
-    };
-    const onML = (e: React.MouseEvent) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.boxShadow = accent
-            ? `4px 4px 10px rgba(245,193,61,0.35), -2px -2px 6px rgba(255,255,255,0.3)`
-            : 'var(--neu-raised-sm)';
-        el.style.transform = 'scale(1)';
-    };
-
-    if (href) {
-        return <a href={href} target="_blank" rel="noopener noreferrer" style={style} onMouseEnter={onME} onMouseLeave={onML}>{children}</a>;
-    }
-    return <button style={style} onMouseEnter={onME} onMouseLeave={onML} onClick={onClick}>{children}</button>;
-}
-
-// ── Detail Modal ──────────────────────────────────────────────────────────────
 // ── Looping image banner — two images side by side, cycling 2-by-2 ────────────
 // Uses object-fit:contain so the full image shows (detail), letterboxed on the cell bg.
 function ImageBannerLoop({ images }: { images: any[] }) {
@@ -144,77 +74,6 @@ function ImageBannerLoop({ images }: { images: any[] }) {
                     </div>
                 );
             })}
-        </div>
-    );
-}
-
-// ── 3D coverflow showcase for image attachments (portfolio-style) ─────────────
-function ImageCoverflow({ images, isNarrow, onRemove }: { images: any[]; isNarrow: boolean; onRemove?: (att: any) => void }) {
-    const [active, setActive] = useState(0);
-    const [paused, setPaused] = useState(false);
-
-    useEffect(() => { setActive(a => Math.min(a, Math.max(0, images.length - 1))); }, [images.length]);
-    useEffect(() => {
-        if (paused || images.length < 2) return;
-        const id = setInterval(() => setActive(a => (a + 1) % images.length), 4200);
-        return () => clearInterval(id);
-    }, [paused, images.length]);
-
-    if (images.length === 0) return null;
-
-    const cardW = isNarrow ? 280 : 560;
-    const cardH = isNarrow ? 200 : 360;
-    const stageH = cardH + (isNarrow ? 50 : 66);
-
-    return (
-        <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
-            style={{ position: 'relative', height: `${stageH}px`, perspective: '1600px', overflow: 'hidden', userSelect: 'none' }}>
-            <div style={{ position: 'absolute', inset: 0, transformStyle: 'preserve-3d' }}>
-                {images.map((att: any, i: number) => {
-                    const offset = i - active;
-                    const abs = Math.abs(offset);
-                    const visible = abs <= 2;
-                    const sign = Math.sign(offset);
-                    const tx = offset * (isNarrow ? 42 : 46);
-                    const tz = -abs * (isNarrow ? 150 : 250);
-                    const ry = -sign * Math.min(abs, 2) * 44;
-                    const scale = abs === 0 ? 1 : abs === 1 ? 0.84 : 0.68;
-                    const url = att.thumbnails?.large?.url ?? att.url;
-                    const isCenter = offset === 0;
-                    return (
-                        <div key={att.id}
-                            onClick={() => { if (isCenter) window.open(att.url, '_blank', 'noopener'); else setActive(i); }}
-                            title={att.filename}
-                            style={{
-                                position: 'absolute', left: '50%', top: '46%', width: `${cardW}px`, height: `${cardH}px`,
-                                transform: `translate(-50%, -50%) translateX(${tx}%) translateZ(${tz}px) rotateY(${ry}deg) scale(${scale})`,
-                                transition: 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s, box-shadow 0.3s',
-                                opacity: visible ? (abs === 0 ? 1 : abs === 1 ? 0.8 : 0.4) : 0,
-                                zIndex: 20 - abs, cursor: 'pointer', pointerEvents: visible ? 'auto' : 'none',
-                                border: `2px solid ${isCenter ? INK : 'var(--ink-line)'}`,
-                                background: 'var(--surface-2)', overflow: 'hidden',
-                                boxShadow: isCenter ? '10px 10px 0 rgba(35,38,46,0.20)' : 'none',
-                            }}>
-                            <img src={url} alt={att.filename} draggable={false}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                            {isCenter && onRemove && (
-                                <div onClick={e => { e.stopPropagation(); onRemove(att); }} title="Remove image" aria-label="Remove image"
-                                    style={{ position: 'absolute', top: '10px', right: '10px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: `2px solid ${INK}`, color: 'var(--text-primary)', cursor: 'pointer', boxShadow: '2px 2px 0 rgba(35,38,46,0.25)' }}>
-                                    <XIcon size={16} weight="bold" />
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-            {images.length > 1 && (
-                <div style={{ position: 'absolute', bottom: '4px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '7px', zIndex: 30 }}>
-                    {images.map((_: any, i: number) => (
-                        <div key={i} onClick={() => setActive(i)}
-                            style={{ width: i === active ? '26px' : '9px', height: '9px', background: i === active ? ACCENT : 'var(--ink-line)', border: `1.5px solid ${INK}`, cursor: 'pointer', transition: 'width 0.3s, background 0.2s' }} />
-                    ))}
-                </div>
-            )}
         </div>
     );
 }
@@ -676,50 +535,6 @@ function ProjectTile({ record, table, index, onClick }: { record: any; table: an
     );
 }
 
-// ── Featured project (wide) ───────────────────────────────────────────────────
-function FeaturedCard({ record, table, onClick }: { record: any; table: any; onClick: () => void }) {
-    const { name, link, langs, notes, created, attachCount } = readProject(record, table);
-    const desc = notes ? (notes.length > 220 ? notes.slice(0, 220).trimEnd() + '…' : notes) : '';
-    const isNarrow = useIsNarrow();
-    return (
-        <div onClick={onClick}
-            style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', marginBottom: '26px', transition: 'border-color 0.16s, box-shadow 0.16s' }}
-            onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = ACCENT; el.style.boxShadow = '0 12px 30px rgba(40,35,20,0.10)'; }}
-            onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = 'var(--ink-line)'; el.style.boxShadow = 'none'; }}>
-
-            {/* Glyph panel — side divider on desktop, top strip on mobile */}
-            <div style={{ width: isNarrow ? '100%' : '150px', flexShrink: 0, padding: isNarrow ? '18px' : 0, borderRight: isNarrow ? 'none' : '1.5px solid var(--ink-line)', borderBottom: isNarrow ? '1.5px solid var(--ink-line)' : 'none', display: 'flex', alignItems: 'center', justifyContent: isNarrow ? 'flex-start' : 'center' }}>
-                <Glyph name={name} size={isNarrow ? 48 : 64} />
-            </div>
-
-            {/* Body */}
-            <div style={{ flex: 1, minWidth: 0, padding: isNarrow ? '18px' : '22px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ ...monoLabel, padding: '3px 9px', borderRadius: '5px', background: ACCENT, color: ACCENT_TEXT }}>New</span>
-                    {langs.slice(0, 3).map(l => <CatTag key={l} label={l} />)}
-                </div>
-                <div style={{ fontSize: isNarrow ? '20px' : '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.15 }}>{name || 'Untitled'}</div>
-                {desc && <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any, overflow: 'hidden' }}>{desc}</div>}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: isNarrow ? '14px 24px' : '26px', marginTop: '4px' }}>
-                    {[['Files', String(attachCount)], ['Tags', String(langs.length)], ['Link', link ? 'Yes' : '—'], ['Added', created ? formatDate(created) : '—']].map(([label, value]) => (
-                        <div key={label} style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1, whiteSpace: 'nowrap' }}>{value}</div>
-                            <div style={{ ...monoLabel, color: 'var(--text-muted)', marginTop: '3px' }}>{label}</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Arrow panel — desktop only (whole card is tappable on mobile) */}
-            {!isNarrow && (
-                <div style={{ width: '58px', flexShrink: 0, borderLeft: '1.5px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}>
-                    <ArrowUpRightIcon size={20} weight="bold" />
-                </div>
-            )}
-        </div>
-    );
-}
-
 // ── New project form (manual fields; Dev Work has no AI) ──────────────────────
 function NewProjectForm({ table, onClose }: { table: any; onClose: () => void }) {
     const isNarrow    = useIsNarrow();
@@ -857,7 +672,6 @@ function DevWorkGrid(): React.ReactElement {
     // Aggregate readout for the OVERVIEW strip
     const linkedCount = records.filter(r => readProject(r, table).link).length;
     const filesTotal  = records.reduce((n, r) => n + readProject(r, table).attachCount, 0);
-    const latestName  = byNewest[0] ? readProject(byNewest[0], table).name : '—';
     const topLang     = allLangs.slice().sort((a, b) => (langMap[b] ?? 0) - (langMap[a] ?? 0))[0] ?? '—';
     const overview: [string, string][] = [
         ['Languages', String(allLangs.length)],

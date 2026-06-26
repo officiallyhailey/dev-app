@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 const DISPLAY = 'var(--font-display)';
 const ITEMS = ['Cheat Sheets', 'Dev Work', 'Agenda', 'Jobs', 'Tools'];
 
