@@ -132,8 +132,8 @@ export default function Landing() {
             }}>
                 {/* Giant faint scrolling page names behind the hero — adds life without hurting readability.
                     Rows fill the full height, each starts on a different word, and they drift at different speeds. */}
-                <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isNarrow ? 'center' : 'flex-start', pointerEvents: 'none', opacity: 0.06 }}>
-                    {Array.from({ length: isNarrow ? 13 : 7 }).map((_, row) => {
+                <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: isNarrow ? 'center' : 'flex-start', pointerEvents: 'none', opacity: 0.06 }}>
+                    {Array.from({ length: isNarrow ? 16 : 11 }).map((_, row) => {
                         // Rotate the word order per line so the same words never stack vertically.
                         const off = row % marqueeItems.length;
                         const rowItems = [...marqueeItems.slice(off), ...marqueeItems.slice(0, off)];
