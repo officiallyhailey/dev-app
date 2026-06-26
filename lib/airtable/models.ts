@@ -100,17 +100,19 @@ export class TableModel {
         const uploads: AttachmentUpload[] = [];
         for (const [fieldId, value] of Object.entries(input)) {
             const f = this.getFieldIfExists(fieldId);
-            if (
-                f?.type === 'multipleAttachments' &&
-                Array.isArray(value) &&
-                value.some(v => (v as { file?: unknown })?.file instanceof File)
-            ) {
-                // Only upload the new File items; already-saved attachments in the
-                // array (plain {id,url,…} objects) stay on the record untouched.
+            if (f?.type === 'multipleAttachments' && Array.isArray(value)) {
+                // The array is the full desired set: already-saved attachments to keep
+                // ({id,url,…} objects) + new browser File objects. Write the kept set as
+                // {id} (PATCH happens before uploads, so dropped ones are removed), then
+                // upload the new files (the upload endpoint appends them).
                 const files = value
                     .filter(v => (v as { file?: unknown })?.file instanceof File)
                     .map(v => (v as { file: File }).file);
-                uploads.push({ fieldId, files });
+                const keep = value
+                    .filter(v => v && !((v as { file?: unknown }).file instanceof File) && (v as { id?: string }).id)
+                    .map(v => ({ id: (v as { id: string }).id }));
+                writeFields[fieldId] = keep;
+                if (files.length > 0) uploads.push({ fieldId, files });
             } else {
                 writeFields[fieldId] = f ? normalizeWrite(f.type, value) : value;
             }

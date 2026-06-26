@@ -110,62 +110,69 @@ function NeuButton({ children, href, onClick, accent }: {
 
 // ── Detail Modal ──────────────────────────────────────────────────────────────
 // ── 3D coverflow showcase for image attachments (portfolio-style) ─────────────
-function ImageCoverflow({ images, isNarrow }: { images: any[]; isNarrow: boolean }) {
+function ImageCoverflow({ images, isNarrow, onRemove }: { images: any[]; isNarrow: boolean; onRemove?: (att: any) => void }) {
     const [active, setActive] = useState(0);
     const [paused, setPaused] = useState(false);
 
     useEffect(() => { setActive(a => Math.min(a, Math.max(0, images.length - 1))); }, [images.length]);
     useEffect(() => {
         if (paused || images.length < 2) return;
-        const id = setInterval(() => setActive(a => (a + 1) % images.length), 3800);
+        const id = setInterval(() => setActive(a => (a + 1) % images.length), 4200);
         return () => clearInterval(id);
     }, [paused, images.length]);
 
     if (images.length === 0) return null;
 
-    const cardW = isNarrow ? 210 : 320;
-    const cardH = isNarrow ? 150 : 210;
-    const stageH = cardH + 54;
+    const cardW = isNarrow ? 280 : 560;
+    const cardH = isNarrow ? 200 : 360;
+    const stageH = cardH + (isNarrow ? 50 : 66);
 
     return (
         <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
-            style={{ position: 'relative', height: `${stageH}px`, perspective: '1300px', overflow: 'hidden', marginBottom: '14px', userSelect: 'none' }}>
+            style={{ position: 'relative', height: `${stageH}px`, perspective: '1600px', overflow: 'hidden', userSelect: 'none' }}>
             <div style={{ position: 'absolute', inset: 0, transformStyle: 'preserve-3d' }}>
                 {images.map((att: any, i: number) => {
                     const offset = i - active;
                     const abs = Math.abs(offset);
                     const visible = abs <= 2;
                     const sign = Math.sign(offset);
-                    const tx = offset * (isNarrow ? 44 : 50);
-                    const tz = -abs * (isNarrow ? 130 : 170);
-                    const ry = -sign * Math.min(abs, 2) * 46;
-                    const scale = abs === 0 ? 1 : abs === 1 ? 0.86 : 0.72;
+                    const tx = offset * (isNarrow ? 42 : 46);
+                    const tz = -abs * (isNarrow ? 150 : 250);
+                    const ry = -sign * Math.min(abs, 2) * 44;
+                    const scale = abs === 0 ? 1 : abs === 1 ? 0.84 : 0.68;
                     const url = att.thumbnails?.large?.url ?? att.url;
+                    const isCenter = offset === 0;
                     return (
                         <div key={att.id}
-                            onClick={() => { if (offset === 0) window.open(att.url, '_blank', 'noopener'); else setActive(i); }}
+                            onClick={() => { if (isCenter) window.open(att.url, '_blank', 'noopener'); else setActive(i); }}
                             title={att.filename}
                             style={{
                                 position: 'absolute', left: '50%', top: '46%', width: `${cardW}px`, height: `${cardH}px`,
                                 transform: `translate(-50%, -50%) translateX(${tx}%) translateZ(${tz}px) rotateY(${ry}deg) scale(${scale})`,
-                                transition: 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s, box-shadow 0.3s',
-                                opacity: visible ? (abs === 0 ? 1 : abs === 1 ? 0.82 : 0.45) : 0,
+                                transition: 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s, box-shadow 0.3s',
+                                opacity: visible ? (abs === 0 ? 1 : abs === 1 ? 0.8 : 0.4) : 0,
                                 zIndex: 20 - abs, cursor: 'pointer', pointerEvents: visible ? 'auto' : 'none',
-                                border: `2px solid ${offset === 0 ? INK : 'var(--ink-line)'}`,
+                                border: `2px solid ${isCenter ? INK : 'var(--ink-line)'}`,
                                 background: 'var(--surface-2)', overflow: 'hidden',
-                                boxShadow: offset === 0 ? '8px 8px 0 rgba(35,38,46,0.20)' : 'none',
+                                boxShadow: isCenter ? '10px 10px 0 rgba(35,38,46,0.20)' : 'none',
                             }}>
                             <img src={url} alt={att.filename} draggable={false}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            {isCenter && onRemove && (
+                                <div onClick={e => { e.stopPropagation(); onRemove(att); }} title="Remove image" aria-label="Remove image"
+                                    style={{ position: 'absolute', top: '10px', right: '10px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', border: `2px solid ${INK}`, color: 'var(--text-primary)', cursor: 'pointer', boxShadow: '2px 2px 0 rgba(35,38,46,0.25)' }}>
+                                    <XIcon size={16} weight="bold" />
+                                </div>
+                            )}
                         </div>
                     );
                 })}
             </div>
             {images.length > 1 && (
-                <div style={{ position: 'absolute', bottom: '2px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '6px', zIndex: 30 }}>
+                <div style={{ position: 'absolute', bottom: '4px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '7px', zIndex: 30 }}>
                     {images.map((_: any, i: number) => (
                         <div key={i} onClick={() => setActive(i)}
-                            style={{ width: i === active ? '22px' : '8px', height: '8px', background: i === active ? ACCENT : 'var(--ink-line)', border: `1.5px solid ${INK}`, cursor: 'pointer', transition: 'width 0.3s, background 0.2s' }} />
+                            style={{ width: i === active ? '26px' : '9px', height: '9px', background: i === active ? ACCENT : 'var(--ink-line)', border: `1.5px solid ${INK}`, cursor: 'pointer', transition: 'width 0.3s, background 0.2s' }} />
                     ))}
                 </div>
             )}
@@ -192,7 +199,6 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
         : [];
     const created     = createdField ? record.getCellValueAsString(createdField) : '';
     const attachments = attachField  ? ((record.getCellValue(attachField) as any[] | null) ?? []) : [];
-    const imageAttachments = attachments.filter((a: any) => a.type?.startsWith('image/') && (a.thumbnails?.large?.url || a.url));
 
     // Editable state
     const originalLink  = linkField  ? (record.getCellValue(linkField)  as string | null) ?? '' : '';
@@ -201,6 +207,10 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
     const [linkVal,  setLinkVal]  = useState(originalLink);
     const [notesVal, setNotesVal] = useState(originalNotes);
     const [newFiles, setNewFiles] = useState<File[]>([]);
+    const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+    const keptAttachments = attachments.filter((a: any) => !removedIds.has(a.id));
+    const keptImages = keptAttachments.filter((a: any) => a.type?.startsWith('image/') && (a.thumbnails?.large?.url || a.url));
+    const removeAttachment = (att: any) => setRemovedIds(prev => { const n = new Set(prev); n.add(att.id); return n; });
     const [saving,   setSaving]   = useState(false);
     const [saved,    setSaved]    = useState(false);
     const [saveError, setSaveError] = useState('');
@@ -214,7 +224,7 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
         setLangsVal(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
 
     const langsChanged = langsVal.slice().sort().join(',') !== originalLangs.slice().sort().join(',');
-    const isDirty = linkVal !== originalLink || notesVal !== originalNotes || newFiles.length > 0 || langsChanged;
+    const isDirty = linkVal !== originalLink || notesVal !== originalNotes || newFiles.length > 0 || removedIds.size > 0 || langsChanged;
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []);
@@ -232,16 +242,18 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
         if (langField)  updates[langField.id]  = langsVal.map(name => ({ name }));
         if (linkField)  updates[linkField.id]  = linkVal || null;
         if (notesField) updates[notesField.id] = notesVal || null;
-        if (attachField && newFiles.length > 0) {
+        if (attachField && (newFiles.length > 0 || removedIds.size > 0)) {
             const existing = (record.getCellValue(attachField) as any[] | null) ?? [];
+            const kept = existing.filter((a: any) => !removedIds.has(a.id));
             updates[attachField.id] = [
-                ...existing,
+                ...kept,
                 ...newFiles.map(file => ({ file })),
             ];
         }
         try {
             await table.updateRecordAsync(record, updates);
             setNewFiles([]);
+            setRemovedIds(new Set());
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (e: any) {
@@ -306,7 +318,12 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: '24px 28px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{ padding: isNarrow ? '16px 16px 24px' : '20px 28px 28px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+                    {/* Portfolio-style 3D coverflow of image attachments — top of the modal */}
+                    {keptImages.length > 0 && (
+                        <ImageCoverflow images={keptImages} isNarrow={isNarrow} onRemove={removeAttachment} />
+                    )}
 
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
@@ -429,12 +446,9 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
                             </div>
                         </div>
 
-                        {/* Portfolio-style 3D coverflow of image attachments */}
-                        {imageAttachments.length > 0 && <ImageCoverflow images={imageAttachments} isNarrow={isNarrow} />}
-
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {/* Existing saved attachments */}
-                            {attachments.map((att: any) => {
+                            {keptAttachments.map((att: any) => {
                                 const isImage = att.type?.startsWith('image/');
                                 return (
                                     <a key={att.id} href={att.url} target="_blank" rel="noopener noreferrer"
@@ -452,7 +466,13 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
                                             <div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>{att.filename}</div>
                                             {att.size && <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', fontFamily: MONO }}>{(att.size / 1024).toFixed(1)} KB</div>}
                                         </div>
-                                        <ArrowUpRightIcon size={13} color="var(--text-muted)" />
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                            <ArrowUpRightIcon size={13} color="var(--text-muted)" />
+                                            <div onClick={e => { e.preventDefault(); e.stopPropagation(); removeAttachment(att); }} title="Remove" aria-label="Remove"
+                                                style={{ width: '26px', height: '26px', borderRadius: '5px', background: 'var(--surface)', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                                                <XIcon size={12} weight="bold" />
+                                            </div>
+                                        </div>
                                     </a>
                                 );
                             })}
