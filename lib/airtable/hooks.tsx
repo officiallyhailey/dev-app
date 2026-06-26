@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { BaseModel, RecordModel, TableModel } from './models';
 import { recordsKey, SCHEMA_KEY } from './keys';
 import type { RawRecord } from './types';
+import { MarqueeLoader } from '@/lib/components/MarqueeLoader';
 
 export { FieldType } from './fieldTypes';
 export type { FieldType as FieldTypeValue } from './fieldTypes';
@@ -71,24 +72,11 @@ class ErrorBoundary extends React.Component<
     }
 }
 
-function FullScreenLoader() {
-    return (
-        <div style={{
-            minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--page, #f4f4f5)', color: 'var(--text-muted, #71717a)',
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-        }}>
-            Loading…
-        </div>
-    );
-}
-
 /** Wrap any component that uses useBase/useRecords. */
 export function AirtableBoundary({ children }: { children: React.ReactNode }) {
     return (
         <ErrorBoundary>
-            <Suspense fallback={<FullScreenLoader />}>{children}</Suspense>
+            <Suspense fallback={<MarqueeLoader />}>{children}</Suspense>
         </ErrorBoundary>
     );
 }

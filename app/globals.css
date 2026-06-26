@@ -38,6 +38,9 @@ body {
     75%, 100% { transform: scale(3); opacity: 0; }
 }
 
+/* Continuous marquee (loading screen + shared) — two copies, translate -50%. */
+@keyframes ddMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
 /* Floating down-arrow scroll cue. */
 .dd-bob { animation: ddBob 1.6s ease-in-out infinite; }
 
@@ -66,5 +69,5 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .dd-ping::after, .dd-bob, .dd-shimmer, .dd-fade-in { animation: none !important; }
+    .dd-ping::after, .dd-bob, .dd-shimmer, .dd-fade-in, .dd-loader-row { animation: none !important; }
 }
