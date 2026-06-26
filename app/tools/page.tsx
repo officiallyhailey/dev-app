@@ -582,7 +582,7 @@ function ToolsApp(): React.ReactElement {
                     --shadow-sm:    0 1px 2px rgba(40,35,20,0.04);
                     --shadow:       0 2px 6px rgba(40,35,20,0.05);
                     --shadow-hover: 0 10px 26px rgba(40,35,20,0.10);
-                    --text-primary: #23262e;
+                    --text-primary: #323232;
                     --text-muted:   #8b8678;
                     --divider:      rgba(35,38,46,0.12);
                     --accent-soft:  #fbeecb;

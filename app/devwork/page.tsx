@@ -833,7 +833,7 @@ function DevWorkGrid(): React.ReactElement {
                     --neu-inset-sm:     inset 0 0 0 1px rgba(35,38,46,0.10);
                     --neu-modal:        0 30px 70px rgba(40,35,20,0.30);
                     --accent-soft: #fbeecb;
-                    --text-primary: #23262e;
+                    --text-primary: #313131;
                     --text-muted:   #8b8678;
                     --divider:      rgba(35,38,46,0.12);
                 }

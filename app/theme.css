@@ -12,7 +12,7 @@
 html:root {
     --accent: #F5C13D;       /* acid yellow */
     --accent-deep: #E3A81B;
-    --accent-text: #221d08;  /* near-black text on yellow */
+    --accent-text: #333333;  /* near-black text on yellow */
     --font-display: 'Anton', Impact, 'Arial Narrow Bold', sans-serif;
     --nav-h: 56px;   /* shared TopNav height; modals offset below this */
 
