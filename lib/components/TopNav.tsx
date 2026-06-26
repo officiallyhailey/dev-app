@@ -54,19 +54,6 @@ export function TopNav() {
 
             {!isNarrow ? (
                 <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Link href="/" aria-label="Home" title="Home"
-                        style={{
-                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '36px',
-                            textDecoration: 'none', border: '2px solid',
-                            borderColor: isActive(pathname, '/') ? 'var(--text-primary)' : 'transparent',
-                            background: isActive(pathname, '/') ? 'var(--accent)' : 'transparent',
-                            color: isActive(pathname, '/') ? 'var(--accent-text)' : 'var(--text-primary)',
-                            transition: 'background 0.1s, color 0.1s, border-color 0.1s',
-                        }}
-                        onMouseEnter={e => { if (!isActive(pathname, '/')) { e.currentTarget.style.background = 'var(--text-primary)'; e.currentTarget.style.color = 'var(--surface)'; } }}
-                        onMouseLeave={e => { if (!isActive(pathname, '/')) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-primary)'; } }}>
-                        <HouseIcon size={17} weight="bold" />
-                    </Link>
                     {LINKS.map(link => {
                         const active = isActive(pathname, link.href);
                         return (
@@ -84,6 +71,19 @@ export function TopNav() {
                             </Link>
                         );
                     })}
+                    <Link href="/" aria-label="Home" title="Home"
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '36px',
+                            textDecoration: 'none', border: '2px solid',
+                            borderColor: isActive(pathname, '/') ? 'var(--text-primary)' : 'transparent',
+                            background: isActive(pathname, '/') ? 'var(--accent)' : 'transparent',
+                            color: isActive(pathname, '/') ? 'var(--accent-text)' : 'var(--text-primary)',
+                            transition: 'background 0.1s, color 0.1s, border-color 0.1s',
+                        }}
+                        onMouseEnter={e => { if (!isActive(pathname, '/')) { e.currentTarget.style.background = 'var(--text-primary)'; e.currentTarget.style.color = 'var(--surface)'; } }}
+                        onMouseLeave={e => { if (!isActive(pathname, '/')) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-primary)'; } }}>
+                        <HouseIcon size={17} weight="bold" />
+                    </Link>
                 </nav>
             ) : (
                 <button aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen(o => !o)}
