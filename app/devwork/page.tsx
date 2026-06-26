@@ -109,6 +109,45 @@ function NeuButton({ children, href, onClick, accent }: {
 }
 
 // ── Detail Modal ──────────────────────────────────────────────────────────────
+// ── Looping image banner — two images side by side, cycling 2-by-2 ────────────
+// Uses object-fit:contain so the full image shows (detail), letterboxed on the cell bg.
+function ImageBannerLoop({ images }: { images: any[] }) {
+    const n = images.length;
+    const pageCount = Math.ceil(n / 2);
+    const [page, setPage] = useState(0);
+    useEffect(() => { setPage(p => Math.min(p, Math.max(0, pageCount - 1))); }, [pageCount]);
+    useEffect(() => {
+        if (pageCount < 2) return;
+        const id = setInterval(() => setPage(p => (p + 1) % pageCount), 1500);
+        return () => clearInterval(id);
+    }, [pageCount]);
+
+    if (n === 0) return null;
+
+    // One image → fill the whole banner.
+    if (n === 1) {
+        const a = images[0];
+        return <img src={a.thumbnails?.large?.url ?? a.url} alt={a.filename} draggable={false}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />;
+    }
+
+    return (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex' }}>
+            {[0, 1].map(cell => {
+                const activeIdx = (page * 2 + cell) % n;
+                return (
+                    <div key={cell} style={{ position: 'relative', flex: 1, minWidth: 0, height: '100%', overflow: 'hidden', background: 'var(--surface-2)', borderLeft: cell === 1 ? '2px solid var(--text-primary)' : 'none' }}>
+                        {images.map((att: any, i: number) => (
+                            <img key={att.id} src={att.thumbnails?.large?.url ?? att.url} alt={att.filename} draggable={false}
+                                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', display: 'block', opacity: i === activeIdx ? 1 : 0, transition: 'opacity 0.5s ease' }} />
+                        ))}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
 // ── 3D coverflow showcase for image attachments (portfolio-style) ─────────────
 function ImageCoverflow({ images, isNarrow, onRemove }: { images: any[]; isNarrow: boolean; onRemove?: (att: any) => void }) {
     const [active, setActive] = useState(0);
@@ -307,23 +346,32 @@ function DevModal({ record, table, onClose }: { record: any; table: any; onClose
             <div onClick={e => e.stopPropagation()} style={{ ...modalCardStyle(isNarrow), borderRadius: isNarrow ? 0 : '8px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', boxShadow: '12px 12px 0 rgba(35,38,46,0.18)' }}>
                 <CornerBrackets inset={10} size={12} />
 
-                {/* Top rule */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1.5px solid var(--ink-line)', flexShrink: 0 }}>
-                    <span style={{ ...monoLabel, color: 'var(--text-muted)' }}>// PROJECT · DETAIL</span>
-                    <div onClick={onClose} style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'}
-                        onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}>
-                        <XIcon size={14} weight="bold" />
+                {/* Top: looping image banner (when images exist) with the close button on
+                    the image and a white-backed label; otherwise the plain top rule. */}
+                {keptImages.length > 0 ? (
+                    <div style={{ position: 'relative', flexShrink: 0, height: isNarrow ? '170px' : '260px', overflow: 'hidden', borderBottom: '2px solid var(--text-primary)', background: 'var(--surface-2)' }}>
+                        <ImageBannerLoop images={keptImages} />
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', zIndex: 2 }}>
+                            <span style={{ ...monoLabel, color: 'var(--text-primary)', background: 'var(--surface)', padding: '6px 10px', border: '1.5px solid var(--text-primary)' }}>// PROJECT · DETAIL</span>
+                            <div onClick={onClose} title="Close" aria-label="Close"
+                                style={{ width: '32px', height: '32px', borderRadius: '6px', border: '1.5px solid var(--text-primary)', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)', boxShadow: '2px 2px 0 rgba(35,38,46,0.22)' }}>
+                                <XIcon size={15} weight="bold" />
+                            </div>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1.5px solid var(--ink-line)', flexShrink: 0 }}>
+                        <span style={{ ...monoLabel, color: 'var(--text-muted)' }}>// PROJECT · DETAIL</span>
+                        <div onClick={onClose} style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-primary)' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}>
+                            <XIcon size={14} weight="bold" />
+                        </div>
+                    </div>
+                )}
 
                 {/* Body */}
                 <div style={{ padding: isNarrow ? '16px 16px 24px' : '20px 28px 28px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-                    {/* Portfolio-style 3D coverflow of image attachments — top of the modal */}
-                    {keptImages.length > 0 && (
-                        <ImageCoverflow images={keptImages} isNarrow={isNarrow} onRemove={removeAttachment} />
-                    )}
 
                     {/* Header */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
