@@ -134,6 +134,7 @@ function SectionLabel({ text }: { text: string }) {
 function ToolCard({ record, nameField, descSummaryField, faviconField, linkField, orgField, categoryField, index, onClick }: {
     record: any; nameField: any; descSummaryField: any; faviconField: any; linkField: any; orgField: any; categoryField: any; index?: number; onClick: () => void;
 }) {
+    const isNarrow   = useIsNarrow();
     const name       = nameField        ? record.getCellValueAsString(nameField)        : record.name;
     const org        = orgField         ? record.getCellValueAsString(orgField)         : '';
     const rawSummary = descSummaryField ? record.getCellValueAsString(descSummaryField) : '';
@@ -143,13 +144,33 @@ function ToolCard({ record, nameField, descSummaryField, faviconField, linkField
     const catValue   = categoryField ? record.getCellValue(categoryField) : null;
     const category   = catValue && typeof catValue === 'object' && 'name' in catValue ? (catValue as { name: string }).name : '';
 
-    const iconBoxStyle: React.CSSProperties = { width: '42px', height: '42px', borderRadius: '8px', flexShrink: 0, background: 'var(--surface-2)', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', textDecoration: 'none' };
+    // Desktop only: hovering the card reveals the Description Summary in a popup that
+    // stays clamped inside the viewport (and flips above the card when there's no room below).
+    const [hovered, setHovered] = useState(false);
+    const popupRef = React.useRef<HTMLDivElement | null>(null);
+    const [pos, setPos] = useState<{ shiftX: number; flip: boolean }>({ shiftX: 0, flip: false });
+    const showPopup = !isNarrow && hovered && preview.trim().length > 0;
+
+    React.useLayoutEffect(() => {
+        if (!showPopup) { setPos({ shiftX: 0, flip: false }); return; }
+        const el = popupRef.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const gutter = 8;
+        let shiftX = 0;
+        if (r.left < gutter) shiftX = gutter - r.left;
+        else if (r.right > window.innerWidth - gutter) shiftX = (window.innerWidth - gutter) - r.right;
+        const flip = r.bottom > window.innerHeight - gutter;
+        setPos({ shiftX, flip });
+    }, [showPopup]);
+
+    const iconBoxStyle: React.CSSProperties = { width: '56px', height: '56px', borderRadius: '10px', flexShrink: 0, background: 'var(--surface-2)', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', textDecoration: 'none' };
 
     return (
         <div onClick={onClick}
             style={{ position: 'relative', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', padding: '18px', display: 'flex', flexDirection: 'column', gap: '13px', cursor: 'pointer', transition: 'border-color 0.16s, transform 0.16s' }}
-            onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = ACCENT; el.style.transform = 'translateY(-3px)'; }}
-            onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = 'var(--ink-line)'; el.style.transform = 'translateY(0)'; }}>
+            onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = ACCENT; el.style.transform = 'translateY(-3px)'; el.style.zIndex = '100'; setHovered(true); }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = 'var(--ink-line)'; el.style.transform = 'translateY(0)'; el.style.zIndex = ''; setHovered(false); }}>
 
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
                 {/* Favicon → opens the Link */}
@@ -157,11 +178,11 @@ function ToolCard({ record, nameField, descSummaryField, faviconField, linkField
                     <a href={link} target="_blank" rel="noopener noreferrer" title="Open link"
                         onClick={e => e.stopPropagation()}
                         style={{ ...iconBoxStyle, cursor: 'pointer' }}>
-                        <FaviconIcon url={favicon} iconSize={22} />
+                        <FaviconIcon url={favicon} iconSize={30} />
                     </a>
                 ) : (
                     <div style={iconBoxStyle}>
-                        <FaviconIcon url={favicon} iconSize={22} />
+                        <FaviconIcon url={favicon} iconSize={30} />
                     </div>
                 )}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -173,16 +194,24 @@ function ToolCard({ record, nameField, descSummaryField, faviconField, linkField
                 </div>
             </div>
 
-            <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.25, letterSpacing: '-0.02em' }}>{name || 'Untitled'}</div>
-                {(org || category) && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', minWidth: 0 }}>
-                        {org && <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{org}</span>}
-                        {category && <Tag text={category} accent />}
-                    </div>
-                )}
-                {preview && <div style={{ marginTop: '9px', fontSize: '11px' }}><MarkdownText text={preview} /></div>}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.25, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{org || name || 'Untitled'}</div>
+                {category && <Tag text={category} accent />}
             </div>
+
+            {/* Description Summary popup (desktop hover) */}
+            {showPopup && (
+                <div ref={popupRef} role="tooltip"
+                    style={{
+                        position: 'absolute', left: 0, [pos.flip ? 'bottom' : 'top']: 'calc(100% + 8px)',
+                        transform: `translateX(${pos.shiftX}px)`, zIndex: 50, width: 'min(320px, 80vw)',
+                        padding: '14px 16px', borderRadius: '6px', background: 'var(--surface)',
+                        border: '2px solid var(--text-primary)', boxShadow: '5px 5px 0 var(--text-primary)',
+                        pointerEvents: 'none',
+                    }}>
+                    <MarkdownText text={preview} />
+                </div>
+            )}
 
         </div>
     );
@@ -330,17 +359,11 @@ function HomeView({ visibleRecords, recentRecords, allCategories, categoryMap, n
 function NewToolForm({ table, records, onClose }: { table: any; records: readonly any[]; onClose: () => void }) {
     const isNarrow      = useIsNarrow();
     const linkField     = table.getFieldIfExists('fldyUeKzyDa9y84tL'); // Link (url)
-    const typeField     = table.getFieldIfExists('fldf3PH45tTs8VcdG'); // Type (singleSelect)
-    const categoryField = table.getFieldIfExists('fldCJurO2mwjpzbLB'); // Category (singleSelect)
     const nameField     = table.getFieldIfExists('fldCbE7GVcOcLssGE'); // Name (formula)
     const orgField      = table.getFieldIfExists('fld6jCbGrXbezIZ3z'); // Organization (aiText)
     const summaryField  = table.getFieldIfExists('fldbq0qCJ1p4wqfPj'); // Summary (aiText)
-    const typeChoices: string[] = ((typeField?.config as any)?.options?.choices ?? []).map((c: any) => c.name);
-    const catChoices: string[]  = ((categoryField?.config as any)?.options?.choices ?? []).map((c: any) => c.name);
 
     const [link, setLink]         = useState('');
-    const [type, setType]         = useState('');
-    const [category, setCategory] = useState('');
     const [newId, setNewId]       = useState<string | null>(null);
     const [creating, setCreating] = useState(false);
     const [error, setError]       = useState('');
@@ -361,9 +384,7 @@ function NewToolForm({ table, records, onClose }: { table: any; records: readonl
         if (!link.trim()) { setError('Add a link first.'); return; }
         setCreating(true); setError('');
         const fields: Record<string, any> = {};
-        if (linkField)              fields[linkField.id]     = link.trim();
-        if (typeField && type)      fields[typeField.id]     = type;
-        if (categoryField && category) fields[categoryField.id] = category;
+        if (linkField) fields[linkField.id] = link.trim();
         try {
             const id = await table.createRecordAsync(fields);
             setNewId(id);
@@ -372,11 +393,10 @@ function NewToolForm({ table, records, onClose }: { table: any; records: readonl
         }
         setCreating(false);
     }
-    const reset = () => { setLink(''); setType(''); setCategory(''); setNewId(null); setError(''); };
+    const reset = () => { setLink(''); setNewId(null); setError(''); };
 
     const inputStyle: React.CSSProperties = { width: '100%', padding: '12px 14px', fontSize: '14px', color: 'var(--text-primary)', background: 'var(--surface)', border: '2px solid var(--text-primary)', borderRadius: 0, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
     const labelStyle: React.CSSProperties = { ...monoLabel, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' };
-    const selectStyle: React.CSSProperties = { ...inputStyle, appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer' };
 
     return (
         <div onClick={onClose} style={{ ...modalOverlayStyle(isNarrow), background: 'rgba(35,38,46,0.45)', backdropFilter: 'blur(4px)' }}>
@@ -392,25 +412,6 @@ function NewToolForm({ table, records, onClose }: { table: any; records: readonl
                             <label style={labelStyle}>Link *</label>
                             <input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…" style={{ ...inputStyle, opacity: newId ? 0.6 : 1 }} disabled={!!newId} autoFocus />
                         </div>
-
-                        {!newId && catChoices.length > 0 && (
-                            <div>
-                                <label style={labelStyle}>Category</label>
-                                <select value={category} onChange={e => setCategory(e.target.value)} style={selectStyle}>
-                                    <option value="">Choose a category…</option>
-                                    {catChoices.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            </div>
-                        )}
-                        {!newId && typeChoices.length > 0 && (
-                            <div>
-                                <label style={labelStyle}>Type</label>
-                                <select value={type} onChange={e => setType(e.target.value)} style={selectStyle}>
-                                    <option value="">Choose a type…</option>
-                                    {typeChoices.map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
-                            </div>
-                        )}
 
                         {/* Live AI preview after creation */}
                         {rec && (

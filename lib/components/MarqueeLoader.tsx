@@ -12,7 +12,7 @@ const ITEMS = ['Cheat Sheets', 'Dev Work', 'Agenda', 'Jobs', 'Tools', 'Courses']
 export function MarqueeLoader() {
     return (
         <div style={{
-            position: 'relative', minHeight: 'calc(100dvh - var(--nav-h))', width: '100%', overflow: 'hidden',
+            position: 'relative', flex: 1, minHeight: 0, width: '100%', overflow: 'hidden',
             background: 'var(--page)',
             backgroundImage: 'linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px)',
             backgroundSize: '40px 40px',

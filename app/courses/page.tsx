@@ -121,10 +121,15 @@ function getCreatedTime(record: any, createdField: any): number {
     return Number.isNaN(t) ? 0 : t;
 }
 
-function getCategory(record: any, categoryField: any): string {
-    if (!categoryField) return '';
+// Category is a multipleSelects field holding the course's languages (e.g. ["JS", "C#"]).
+// Normalize returns an array of { name } objects; this flattens it to language strings.
+function getCategories(record: any, categoryField: any): string[] {
+    if (!categoryField) return [];
     const v = record.getCellValue(categoryField);
-    return v && typeof v === 'object' && 'name' in v ? (v as { name: string }).name : '';
+    if (Array.isArray(v)) return v.map(x => (typeof x === 'string' ? x : (x && typeof x === 'object' && 'name' in x ? (x as { name: string }).name : ''))).filter(Boolean);
+    if (v && typeof v === 'object' && 'name' in v) return [(v as { name: string }).name];
+    if (typeof v === 'string' && v) return [v];
+    return [];
 }
 
 // Favicon image with a graduation-cap fallback (used in cards and the detail header)
@@ -195,12 +200,9 @@ function CourseCard({ record, table, nameField, summaryField, faviconField, link
 }) {
     const [saving, setSaving] = useState(false);
     const name       = nameField    ? record.getCellValueAsString(nameField)    : record.name;
-    const org        = orgField     ? record.getCellValueAsString(orgField)     : '';
-    const rawSummary = summaryField ? record.getCellValueAsString(summaryField) : '';
-    const preview    = rawSummary.length > 300 ? rawSummary.slice(0, 300).trimEnd() + '…' : rawSummary;
     const favicon    = getFaviconUrl(record, faviconField);
     const link       = linkField ? record.getCellValueAsString(linkField) : '';
-    const category   = getCategory(record, categoryField);
+    const categories = getCategories(record, categoryField);
     const status     = getStatus(record, updateField);
 
     // Save toggles: a course with no status becomes Saved; clicking Saved again
@@ -247,13 +249,11 @@ function CourseCard({ record, table, nameField, summaryField, faviconField, link
 
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.25, letterSpacing: '-0.02em' }}>{name || 'Untitled'}</div>
-                {(org || category) && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', minWidth: 0 }}>
-                        {org && <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{org}</span>}
-                        {category && <Tag text={category} accent />}
+                {categories.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', minWidth: 0, flexWrap: 'wrap' }}>
+                        {categories.map(c => <Tag key={c} text={c} accent />)}
                     </div>
                 )}
-                {preview && <div style={{ marginTop: '9px', fontSize: '11px' }}><MarkdownText text={preview} /></div>}
             </div>
 
             {index !== undefined && <span style={{ ...monoLabel, position: 'absolute', bottom: '10px', right: '12px', color: 'var(--text-muted)', opacity: 0.6 }}>{String(index + 1).padStart(3, '0')}</span>}
@@ -292,7 +292,7 @@ function CourseModal({ record, table, nameField, summaryField, linkField, orgFie
     const org      = orgField     ? record.getCellValueAsString(orgField)     : '';
     const link     = linkField    ? record.getCellValueAsString(linkField)    : '';
     const summary  = summaryField ? record.getCellValueAsString(summaryField) : '';
-    const category = getCategory(record, categoryField);
+    const categories = getCategories(record, categoryField);
     const favicon  = getFaviconUrl(record, faviconField);
 
     const originalStatus = getStatus(record, updateField);
@@ -394,7 +394,7 @@ function CourseModal({ record, table, nameField, summaryField, linkField, orgFie
                             <div style={{ fontFamily: MONO, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.12, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{name || 'Untitled'}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
                                 {org && <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>{org}</span>}
-                                {category && <Tag text={category} accent />}
+                                {categories.map(c => <Tag key={c} text={c} accent />)}
                             </div>
                         </div>
                         {link && (
@@ -567,12 +567,11 @@ function ProgressTracker({ records, updateField, categoryField }: { records: any
         records.forEach(r => {
             const s = getStatus(r, updateField);
             if (s) counts[s] += 1;
-            const cat = getCategory(r, categoryField);
-            if (cat) {
+            getCategories(r, categoryField).forEach(cat => {
                 byCategory[cat] ??= { done: 0, total: 0 };
                 byCategory[cat].total += 1;
                 if (s === 'Completed') byCategory[cat].done += 1;
-            }
+            });
         });
         const total = records.length;
         const pct = total > 0 ? Math.round((counts['Completed'] / total) * 100) : 0;
@@ -625,7 +624,7 @@ function ProgressTracker({ records, updateField, categoryField }: { records: any
 
             {catRows.length > 0 && (
                 <div>
-                    <SectionLabel text="// By Category" />
+                    <SectionLabel text="// By Language" />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
                         {catRows.map(([cat, v]) => {
                             const Icon = categoryIcon(cat);
@@ -652,16 +651,12 @@ function ProgressTracker({ records, updateField, categoryField }: { records: any
 
 // ── Home dashboard ────────────────────────────────────────────────────────────
 function CategoryTile({ label, count, onClick }: { label: string; count: number; onClick: () => void }) {
-    const Icon = categoryIcon(label);
     return (
         <div onClick={onClick}
             style={{ borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', cursor: 'pointer', transition: 'border-color 0.16s, transform 0.16s' }}
             onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = ACCENT; el.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = 'var(--ink-line)'; el.style.transform = 'translateY(0)'; }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                <Icon size={15} weight="bold" color={ACCENT_DEEP} />
-                <span style={{ fontFamily: MONO, fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{label}</span>
-            </span>
+            <span style={{ fontFamily: MONO, fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{label}</span>
             <span style={{ ...monoLabel, fontSize: '11px', color: ACCENT_DEEP, flexShrink: 0 }}>{String(count).padStart(2, '0')}</span>
         </div>
     );
@@ -709,7 +704,7 @@ function HomeView({ allRecords, recentRecords, allCategories, categoryMap, field
             {allCategories.length > 0 && (
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                        <SectionLabel text="// Browse by Category" />
+                        <SectionLabel text="// Browse by Language" />
                         <span onClick={onViewAll} style={{ ...monoLabel, color: ACCENT_DEEP, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', userSelect: 'none' }}>
                             View all <CaretRightIcon size={11} weight="bold" />
                         </span>
@@ -744,7 +739,7 @@ function NewCourseForm({ table, records, onClose }: { table: any; records: reado
     const liveName = rec && nameField    ? rec.getCellValueAsString(nameField)    : '';
     const liveOrg  = rec && orgField     ? rec.getCellValueAsString(orgField)     : '';
     const liveSumm = rec && summaryField ? rec.getCellValueAsString(summaryField) : '';
-    const liveCat  = rec ? getCategory(rec, categoryField) : '';
+    const liveCat  = rec ? getCategories(rec, categoryField).join(', ') : '';
 
     useEffect(() => {
         const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -849,7 +844,7 @@ function CoursesApp(): React.ReactElement {
 
     const categoryMap = useMemo(() => {
         const map: Record<string, number> = {};
-        records.forEach(r => { const cat = getCategory(r, categoryField); if (cat) map[cat] = (map[cat] ?? 0) + 1; });
+        records.forEach(r => { getCategories(r, categoryField).forEach(cat => { map[cat] = (map[cat] ?? 0) + 1; }); });
         return map;
     }, [records, categoryField]);
     const allCategories = useMemo(() => Object.keys(categoryMap).sort(), [categoryMap]);
@@ -881,7 +876,7 @@ function CoursesApp(): React.ReactElement {
             });
         }
         if (statusFilter !== 'all') list = list.filter(r => getStatus(r, updateField) === statusFilter);
-        if (categoryFilter !== 'all') list = list.filter(r => getCategory(r, categoryField) === categoryFilter);
+        if (categoryFilter !== 'all') list = list.filter(r => getCategories(r, categoryField).includes(categoryFilter));
         return list;
     }, [isSearching, search, recordsByNewest, statusFilter, categoryFilter, categoryField, nameField, orgField, summaryField, updateField]);
 
@@ -961,15 +956,15 @@ function CoursesApp(): React.ReactElement {
 
                 {/* Dropdown filters — status (Update) + category. The divider spans the
                     page, but the controls align to the same perimeter as the content. */}
-                <div style={{ flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)', background: 'var(--surface)' }}>
-                    <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', padding: '9px clamp(16px, 3vw, 32px)', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ flexShrink: 0 }}>
+                    <div style={{ width: '100%', maxWidth: '1080px', margin: '0 auto', padding: '9px clamp(16px, 3vw, 32px)', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', borderBottom: '1.5px solid var(--ink-line)' }}>
                         <span style={{ ...monoLabel, color: 'var(--text-muted)' }}>Filter</span>
                         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as StatusFilter)} style={selectStyle} aria-label="Filter by status">
                             <option value="all">All statuses</option>
                             {STATUS_ORDER.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
-                        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} style={selectStyle} aria-label="Filter by category">
-                            <option value="all">All categories</option>
+                        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)} style={selectStyle} aria-label="Filter by language">
+                            <option value="all">All languages</option>
                             {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                         {(statusFilter !== 'all' || categoryFilter !== 'all') && (

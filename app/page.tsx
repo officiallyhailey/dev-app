@@ -215,10 +215,10 @@ export default function Landing() {
 
                 {/* Rolling sections marquee — pinned to the bottom of the hero */}
                 <div style={{ position: 'relative', zIndex: 1, flexShrink: 0, borderTop: '2px solid var(--text-primary)', background: 'var(--accent)', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                    <div className="dd-marquee-track" style={{ display: 'inline-flex', animation: 'ddMarquee 26s linear infinite' }}>
+                    <div className="dd-marquee-track" style={{ display: 'inline-flex', animation: `ddMarquee ${isNarrow ? 13 : 26}s linear infinite`, willChange: 'transform', backfaceVisibility: 'hidden' }}>
                         {[0, 1].map(seq => (
                             <div key={seq} style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-                                {Array.from({ length: 4 }).flatMap((_, k) =>
+                                {Array.from({ length: isNarrow ? 2 : 4 }).flatMap((_, k) =>
                                     marqueeItems.map((item, i) => (
                                         <span key={`${k}-${i}`} style={{ display: 'inline-flex', alignItems: 'center', fontFamily: DISPLAY, fontSize: isNarrow ? '28px' : '40px', textTransform: 'uppercase', color: 'var(--accent-text)', padding: isNarrow ? '10px 0' : '14px 0' }}>
                                             <span style={{ padding: '0 24px' }}>{item}</span>

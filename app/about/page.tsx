@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRightIcon, ArrowLeftIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon } from '@phosphor-icons/react';
 import { TopNav } from '@/lib/components/TopNav';
 import { ScrollProgress } from '@/lib/components/ScrollProgress';
 import { useIsNarrow } from '@/lib/useIsNarrow';
@@ -118,10 +118,7 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function Card({ children, accent = false }: { children: React.ReactNode; accent?: boolean }) {
     return (
-        <div
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = '5px 5px 0 var(--text-primary)'; }}
-            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; }}
-            style={{ border: '2px solid var(--text-primary)', background: accent ? 'var(--accent)' : 'var(--page)', color: accent ? 'var(--accent-text)' : 'var(--text-primary)', padding: '18px', transition: 'box-shadow 0.18s' }}>
+        <div style={{ border: '2px solid var(--text-primary)', background: accent ? 'var(--accent)' : 'var(--page)', color: accent ? 'var(--accent-text)' : 'var(--text-primary)', padding: '18px' }}>
             {children}
         </div>
     );
@@ -164,6 +161,22 @@ function SkillChip({ name, info, accent, isNarrow }: { name: string; info: strin
         onMouseEnter: () => setOpenId(id),
         onMouseLeave: () => setOpenId(prev => (prev === id ? null : prev)),
     };
+
+    // Keep the tooltip inside the viewport: it's centered over the chip by default,
+    // so chips near a screen edge would overflow. Measure once open and nudge it back.
+    const tipRef = React.useRef<HTMLSpanElement | null>(null);
+    const [shiftX, setShiftX] = useState(0);
+    React.useLayoutEffect(() => {
+        if (!open) { setShiftX(0); return; }
+        const el = tipRef.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const gutter = 8;
+        if (r.left < gutter) setShiftX(gutter - r.left);
+        else if (r.right > window.innerWidth - gutter) setShiftX((window.innerWidth - gutter) - r.right);
+        else setShiftX(0);
+    }, [open]);
+
     return (
         <span style={{ position: 'relative', display: 'inline-block' }} {...hover} onClick={e => e.stopPropagation()}>
             <button
@@ -181,8 +194,9 @@ function SkillChip({ name, info, accent, isNarrow }: { name: string; info: strin
                 {name}
             </button>
             {open && (
-                <span role="tooltip" style={{
-                    position: 'absolute', bottom: 'calc(100% + 9px)', left: '50%', transform: 'translateX(-50%)',
+                <span ref={tipRef} role="tooltip" style={{
+                    position: 'absolute', bottom: 'calc(100% + 9px)', left: '50%',
+                    transform: `translateX(-50%) translateX(${shiftX}px)`,
                     zIndex: 60, width: 'min(300px, 78vw)', padding: '12px 14px',
                     border: '2px solid var(--text-primary)', background: 'var(--surface)', color: 'var(--text-primary)',
                     boxShadow: '5px 5px 0 var(--text-primary)',
@@ -245,32 +259,26 @@ function CountUp({ to, suffix = '', duration = 1100 }: { to: number; suffix?: st
     return <span ref={ref}>{val}{suffix}</span>;
 }
 
-// The request path: auto-highlights each step in turn, and pins to whatever you hover.
+// The request path: the user selects a step to read what it does. No auto-rotation,
+// so the description box never resizes on its own and the page stays put.
 function FlowDiagram({ isNarrow }: { isNarrow: boolean }) {
-    const [active, setActive] = useState(0);
-    const [hover, setHover] = useState<number | null>(null);
-    useEffect(() => {
-        if (prefersReducedMotion()) return;
-        const id = setInterval(() => setActive(a => (a + 1) % FLOW.length), 1700);
-        return () => clearInterval(id);
-    }, []);
-    const shown = hover ?? active;
+    const [selected, setSelected] = useState(0);
     return (
         <div>
             <div style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', alignItems: 'stretch' }}>
                 {FLOW.map((step, i) => {
-                    const on = hover === null ? active === i : hover === i;
+                    const on = selected === i;
                     return (
                         <React.Fragment key={step.label}>
                             <div
-                                onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
-                                onClick={() => setHover(h => (h === i ? null : i))}
+                                onClick={() => setSelected(i)}
+                                aria-pressed={on}
                                 style={{ flex: 1, cursor: 'pointer', border: '2px solid var(--text-primary)', padding: '18px', transition: 'background 0.3s, color 0.3s, box-shadow 0.2s', background: on ? 'var(--accent)' : 'var(--surface)', color: on ? 'var(--accent-text)' : 'var(--text-primary)', boxShadow: on ? '5px 5px 0 var(--text-primary)' : 'none' }}>
                                 <div style={{ fontFamily: DISPLAY, fontSize: '21px', textTransform: 'uppercase', lineHeight: 1 }}>{step.label}</div>
                                 <div style={{ ...mono, marginTop: '8px', opacity: 0.75 }}>{step.sub}</div>
                             </div>
                             {i < FLOW.length - 1 && (
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isNarrow ? '6px 0' : '0 8px', fontFamily: DISPLAY, fontSize: '24px', color: 'var(--text-primary)', transition: 'opacity 0.3s', opacity: hover === null && (active === i || active === i + 1) ? 1 : 0.35 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isNarrow ? '6px 0' : '0 8px', fontFamily: DISPLAY, fontSize: '24px', color: 'var(--text-primary)', transition: 'opacity 0.3s', opacity: selected === i || selected === i + 1 ? 1 : 0.35 }}>
                                     {isNarrow ? '↓' : '→'}
                                 </div>
                             )}
@@ -278,10 +286,11 @@ function FlowDiagram({ isNarrow }: { isNarrow: boolean }) {
                     );
                 })}
             </div>
-            <div style={{ marginTop: '16px', border: '2px solid var(--text-primary)', background: 'var(--page)', padding: '14px 16px', minHeight: '66px', display: 'flex', alignItems: 'center' }}>
+            {/* Reserved height for the longest detail so swapping steps never shifts the page. */}
+            <div style={{ marginTop: '16px', border: '2px solid var(--text-primary)', background: 'var(--page)', padding: '14px 16px', minHeight: isNarrow ? '150px' : '96px', display: 'flex', alignItems: 'center' }}>
                 <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.55, fontWeight: 500, color: 'var(--text-primary)' }}>
-                    <span style={{ ...mono, color: 'var(--accent-deep, var(--text-primary))', marginRight: '8px' }}>{FLOW[shown].label}</span>
-                    {FLOW[shown].detail}
+                    <span style={{ ...mono, color: 'var(--accent-deep, var(--text-primary))', marginRight: '8px' }}>{FLOW[selected].label}</span>
+                    {FLOW[selected].detail}
                 </p>
             </div>
         </div>
@@ -386,7 +395,7 @@ export default function About() {
                         The rule that shapes everything: the Airtable token must never reach the browser.
                         The client calls a thin serverless proxy that attaches the token and forwards to
                         Airtable. Mapbox uses a separate, public token and is safe to call directly.
-                        <em> Hover any step</em> to see what it does.
+                        <em> Select any step</em> to see what it does.
                     </p>
                     <FlowDiagram isNarrow={isNarrow} />
                 </Reveal>
@@ -503,11 +512,8 @@ export default function About() {
                         ))}
                     </div>
 
-                    {/* Back to app CTA */}
+                    {/* Back to home */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '32px' }}>
-                        <Link href="/cheatsheet" style={{ ...mono, fontSize: '12px', textDecoration: 'none', padding: '14px 22px', background: 'var(--accent)', color: 'var(--accent-text)', border: '2px solid var(--text-primary)', boxShadow: '5px 5px 0 var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                            Open the app <ArrowRightIcon size={14} weight="bold" />
-                        </Link>
                         <Link href="/" style={{ ...mono, fontSize: '12px', textDecoration: 'none', padding: '14px 22px', background: 'var(--surface)', color: 'var(--text-primary)', border: '2px solid var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                             <ArrowLeftIcon size={14} weight="bold" /> Back to home
                         </Link>
