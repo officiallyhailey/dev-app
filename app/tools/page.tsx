@@ -254,7 +254,6 @@ function HomeView({ recentRecords, allCategories, categoryMap, nameField, descSu
 function NewToolForm({ table, records, onClose }: { table: any; records: readonly any[]; onClose: () => void }) {
     const isNarrow      = useIsNarrow();
     const linkField     = table.getFieldIfExists('fldyUeKzyDa9y84tL'); // Link (url)
-    const nameField     = table.getFieldIfExists('fldCbE7GVcOcLssGE'); // Name (formula)
     const orgField      = table.getFieldIfExists('fld6jCbGrXbezIZ3z'); // Organization (aiText)
     const summaryField  = table.getFieldIfExists('fldbq0qCJ1p4wqfPj'); // Summary (aiText)
 
@@ -265,7 +264,6 @@ function NewToolForm({ table, records, onClose }: { table: any; records: readonl
 
     // Once created, the record reactively fills in as AI populates it (useRecords polls).
     const rec      = newId ? records.find(r => r.id === newId) ?? null : null;
-    const liveName = rec && nameField    ? rec.getCellValueAsString(nameField)    : '';
     const liveOrg  = rec && orgField     ? rec.getCellValueAsString(orgField)     : '';
     const liveSumm = rec && summaryField ? rec.getCellValueAsString(summaryField) : '';
 
@@ -311,7 +309,6 @@ function NewToolForm({ table, records, onClose }: { table: any; records: readonl
                         {/* Live AI preview after creation */}
                         {rec && (
                             <>
-                                <LiveField label="Name" value={liveName} />
                                 <LiveField label="Organization" value={liveOrg} />
                                 <LiveField label="Summary" value={liveSumm} render={v => <MarkdownText text={v} />} />
                             </>
