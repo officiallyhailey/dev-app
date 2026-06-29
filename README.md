@@ -5,8 +5,8 @@ outside of Airtable. Airtable's own Interface Extensions only run on desktop ins
 the Airtable runtime; DevDeck re-implements that data layer on top of the Airtable
 **REST API** so the same interfaces work on a phone, installable as a PWA.
 
-It ships five sections — **Cheat Sheets, Dev Work, Agenda, Jobs** (Mapbox map) and
-**Tools** — behind a single-password gate, in a neutral-gray + acid-yellow brutalist theme.
+It ships six sections — **Cheat Sheets, Dev Work, Agenda, Jobs** (Mapbox map), **Tools**
+and **Courses** — behind a single-password gate, in a neutral-gray + acid-yellow brutalist theme.
 
 ---
 
@@ -75,10 +75,11 @@ webapp/
 │   ├── login/page.tsx              # Password gate UI
 │   │
 │   ├── cheatsheet/page.tsx         # ┐
-│   ├── devwork/page.tsx            # │ The five interfaces. Each is a self-contained
-│   ├── events/page.tsx             # ├─ client component ported from an Airtable Interface
-│   ├── jobs/page.tsx               # │ Extension (the /events route is labelled "Agenda").
-│   ├── tools/page.tsx              # ┘ Wrapped in <Shell> for the shared nav.
+│   ├── devwork/page.tsx            # │ The six interfaces. Each is a self-contained
+│   ├── events/page.tsx             # ├─ client component (ported from an Airtable Interface
+│   ├── jobs/page.tsx               # │ Extension where one existed; the /events route is
+│   ├── tools/page.tsx              # │ labelled "Agenda"). Wrapped in <Shell> for the
+│   ├── courses/page.tsx            # ┘ shared nav. Courses tracks progress + certificates.
 │   │
 │   └── api/                        # Server-only route handlers (hold the Airtable token)
 │       ├── login/route.ts          # POST password → set signed session cookie
@@ -182,8 +183,8 @@ route (which *appends*), so an update first PATCHes the kept set as `[{id}]` (re
 dropped attachments), then uploads the new files.
 
 **AI fields.** Several tables have Airtable `aiText`/formula fields that populate a few seconds
-after a record is created from a link. The "New" forms on Tools and Jobs create the record,
-then poll (`useRecords` refresh) and reveal those fields with `LiveField`'s shimmer-then-fill.
+after a record is created from a link. The "New" forms on Tools, Jobs and Courses create the
+record, then poll (`useRecords` refresh) and reveal those fields with `LiveField`'s shimmer-then-fill.
 
 **Config that used to be Airtable UI.** Blocks Extensions let users pick fields and settings
 in Airtable's builder (`useCustomProperties`). In a standalone app there's no builder, so

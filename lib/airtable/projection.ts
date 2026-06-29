@@ -39,4 +39,10 @@ export const FIELD_PROJECTION: Record<string, string[]> = {
         'fldQJ7YA7TKGV7qt6', 'fldQXlNg9MgevFYs5', 'fldbq0qCJ1p4wqfPj', 'fldf3PH45tTs8VcdG',
         'fldyUeKzyDa9y84tL', 'fldzBNfmK6WWZ9vvT',
     ],
+    // Courses (tbl6MsSDOkKhgIEwe) — primary fldIi9eSs71wMsXin included
+    tbl6MsSDOkKhgIEwe: [
+        'fldIi9eSs71wMsXin', 'fldW4QUsGHtywFt4O', 'fldcq7iSYSoyAIuFi', 'fldhxvxOgWCoxqKr2',
+        'fldU3NRwbh67fTZIa', 'fldIQZy0zhJDqzGnk', 'fldlakOgCo6M9VHPp', 'fldEmoFMRpw1ABTnz',
+        'fld4rTHccanhp8XPJ', 'fldE1JRL5yntz8z5u', 'fldWQC5MEOX0W7V5P',
+    ],
 };

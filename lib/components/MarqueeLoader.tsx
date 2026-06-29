@@ -1,7 +1,7 @@
 'use client';
 
 const DISPLAY = 'var(--font-display)';
-const ITEMS = ['Cheat Sheets', 'Dev Work', 'Agenda', 'Jobs', 'Tools'];
+const ITEMS = ['Cheat Sheets', 'Dev Work', 'Agenda', 'Jobs', 'Tools', 'Courses'];
 
 /**
  * Loading state shown while record data is being fetched (the Suspense fallback).

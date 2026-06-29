@@ -10,7 +10,7 @@ export interface HelpContent {
     sections: HelpSection[];
 }
 
-export type HelpPage = 'cheatsheet' | 'devwork' | 'events' | 'jobs' | 'tools';
+export type HelpPage = 'cheatsheet' | 'devwork' | 'events' | 'jobs' | 'tools' | 'courses';
 
 export const HELP: Record<HelpPage, HelpContent> = {
     cheatsheet: {
@@ -50,6 +50,15 @@ export const HELP: Record<HelpPage, HelpContent> = {
             { heading: 'What this page is for', body: 'A categorized directory of the platforms, tools and resources you rely on.' },
             { heading: 'How AI helps', body: 'Paste a link and AI fills in the name, organization and summary for you.' },
             { heading: 'How to add', body: 'Hit + and add a link. The details fill themselves in moments later.' },
+        ],
+    },
+    courses: {
+        title: 'Courses',
+        sections: [
+            { heading: 'What this page is for', body: 'Discover courses, save the ones you want to take, and track each from saved through to completed.' },
+            { heading: 'How AI helps', body: 'Paste a course link and AI fills in the course, organization, summary, icon and category for you.' },
+            { heading: 'Save & progress', body: 'Hit Save on a card to add a course to your list, then open it to move it from Saved → In Progress → Completed. The tracker up top shows your overall progress.' },
+            { heading: 'Mark it complete', body: 'To mark a course Completed, attach your certificate as proof of completion — then enjoy the celebration.' },
         ],
     },
 };

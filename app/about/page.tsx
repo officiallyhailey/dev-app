@@ -22,7 +22,7 @@ const FLOW = [
 ];
 
 const STATS: { to: number; suffix: string; label: string }[] = [
-    { to: 5, suffix: '', label: 'Interfaces, one codebase' },
+    { to: 6, suffix: '', label: 'Interfaces, one codebase' },
     { to: 0, suffix: '', label: 'Secrets in the browser' },
     { to: 100, suffix: '%', label: 'TypeScript' },
     { to: 1, suffix: '', label: 'Password, fully gated' },
@@ -84,6 +84,7 @@ const MODULES: { name: string; what: string; ex: string }[] = [
     { name: 'Agenda', what: 'Tasks, events & reminders', ex: 'Full create / update / delete' },
     { name: 'Jobs', what: 'Opportunities on a map', ex: 'Create (link → AI) · map · geocoding' },
     { name: 'Tools', what: 'Categorised resource directory', ex: 'Create (link → AI) · grouping' },
+    { name: 'Courses', what: 'Course tracker with progress', ex: 'Create (link → AI) · status · certificate upload' },
 ];
 
 const CHIPS: { name: string; info: string }[] = [
@@ -347,8 +348,7 @@ export default function About() {
                         How it&apos;s built
                     </h1>
                     <p style={{ ...body, margin: '20px 0 24px' }}>
-                        Curious how it works? Here&apos;s the whole thing, start to finish — friendly enough
-                        for a new developer, honest enough for a fellow engineer. DevDeck is a standalone,
+                        Curious how it works? Here&apos;s the whole thing, start to finish. DevDeck is a standalone,
                         mobile-first web app that surfaces an Airtable base <em>outside</em> of Airtable.
                         Airtable&apos;s own Interface Extensions only run on desktop inside its runtime, so this
                         project re-implements that data layer on the Airtable REST API — the same tools now work
@@ -484,7 +484,7 @@ export default function About() {
             <section style={section}>
                 <Reveal style={wrap}>
                     <Eyebrow n="07" text="The modules" />
-                    <Heading>Five interfaces</Heading>
+                    <Heading>Six interfaces</Heading>
                     <div style={{ border: '2px solid var(--text-primary)' }}>
                         {/* header row (desktop only) */}
                         {!isNarrow && (

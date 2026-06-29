@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { BookOpenIcon, CodeIcon, CalendarBlankIcon, BriefcaseIcon, WrenchIcon, ArrowRightIcon, CaretDownIcon } from '@phosphor-icons/react';
+import { BookOpenIcon, CodeIcon, CalendarBlankIcon, BriefcaseIcon, WrenchIcon, GraduationCapIcon, ArrowRightIcon, CaretDownIcon } from '@phosphor-icons/react';
 import { TopNav } from '@/lib/components/TopNav';
 import { ScrollProgress } from '@/lib/components/ScrollProgress';
 import { useIsNarrow } from '@/lib/useIsNarrow';
@@ -15,6 +15,7 @@ const SECTIONS = [
     { href: '/events', label: 'Agenda', desc: 'Agendas, deadlines and conferences on a timeline.', Icon: CalendarBlankIcon, n: '03' },
     { href: '/jobs', label: 'Jobs', desc: 'Opportunities plotted on an interactive map.', Icon: BriefcaseIcon, n: '04' },
     { href: '/tools', label: 'Tools', desc: 'Platforms and resources, organised by category.', Icon: WrenchIcon, n: '05' },
+    { href: '/courses', label: 'Courses', desc: 'Save courses, track progress and log certificates.', Icon: GraduationCapIcon, n: '06' },
 ];
 
 const mono: React.CSSProperties = {
@@ -104,7 +105,7 @@ function HeroComputer({ isNarrow }: { isNarrow: boolean }) {
 
 export default function Landing() {
     const isNarrow = useIsNarrow();
-    const marqueeItems = ['Cheat Sheets', 'Dev Work', 'Agenda', 'Jobs', 'Tools'];
+    const marqueeItems = ['Cheat Sheets', 'Dev Work', 'Agenda', 'Jobs', 'Tools', 'Courses'];
     const scrollToSections = () => document.getElementById('sections')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     return (
