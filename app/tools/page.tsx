@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useBase, useRecords, AirtableBoundary, FieldType } from '@/lib/airtable/hooks';
 import { Shell } from '@/lib/components/Shell';
 import { useIsNarrow } from '@/lib/useIsNarrow';
@@ -27,6 +28,9 @@ function FaviconIcon({ url, iconSize }: { url: string | null; iconSize: number }
 }
 
 // ── Tool card (grid) ──────────────────────────────────────────────────────────
+// Static box styling for the hover popup; positioning is computed per-card below.
+const POPUP_BASE: React.CSSProperties = { position: 'fixed', width: 'min(320px, 80vw)', padding: '14px 16px', borderRadius: '6px', background: 'var(--surface)', border: '2px solid var(--text-primary)', boxShadow: '5px 5px 0 var(--text-primary)', pointerEvents: 'none', zIndex: 900 };
+
 function ToolCard({ record, nameField, descSummaryField, faviconField, linkField, orgField, categoryField, index, onClick }: {
     record: any; nameField: any; descSummaryField: any; faviconField: any; linkField: any; orgField: any; categoryField: any; index?: number; onClick: () => void;
 }) {
@@ -39,30 +43,47 @@ function ToolCard({ record, nameField, descSummaryField, faviconField, linkField
     const link       = linkField ? record.getCellValueAsString(linkField) : '';
     const category   = getSingleSelectName(record, categoryField);
 
-    // Desktop only: hovering the card reveals the Description Summary in a popup that
-    // stays clamped inside the viewport (and flips above the card when there's no room below).
+    // Desktop / tablet only: hovering the card reveals the Description Summary in a popup.
+    // It's portalled to <body> with fixed positioning, so it escapes both the scrolling grid's
+    // clipping and the card's hover transform, then clamped to stay below the nav and fully
+    // on-screen (flipping above the card when there's no room below).
     const [hovered, setHovered] = useState(false);
+    const cardRef  = React.useRef<HTMLDivElement | null>(null);
     const popupRef = React.useRef<HTMLDivElement | null>(null);
-    const [pos, setPos] = useState<{ shiftX: number; flip: boolean }>({ shiftX: 0, flip: false });
+    const [popupStyle, setPopupStyle] = useState<React.CSSProperties>({ ...POPUP_BASE, top: 0, left: 0, visibility: 'hidden' });
     const showPopup = !isNarrow && hovered && preview.trim().length > 0;
 
     React.useLayoutEffect(() => {
-        if (!showPopup) { setPos({ shiftX: 0, flip: false }); return; }
-        const el = popupRef.current;
-        if (!el) return;
-        const r = el.getBoundingClientRect();
+        if (!showPopup) return;
+        const card = cardRef.current, pop = popupRef.current;
+        if (!card || !pop) return;
+        const cr = card.getBoundingClientRect();
+        const pr = pop.getBoundingClientRect();
         const gutter = 8;
-        let shiftX = 0;
-        if (r.left < gutter) shiftX = gutter - r.left;
-        else if (r.right > window.innerWidth - gutter) shiftX = (window.innerWidth - gutter) - r.right;
-        const flip = r.bottom > window.innerHeight - gutter;
-        setPos({ shiftX, flip });
+        const navH = 56; // var(--nav-h): keep the popup below the top nav
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const width = pr.width;
+        const maxH = vh - navH - gutter * 2;
+        const height = Math.min(pr.height, maxH);
+        // Horizontal: align to the card's left edge, clamped within the viewport width.
+        let left = cr.left;
+        if (left + width > vw - gutter) left = vw - gutter - width;
+        if (left < gutter) left = gutter;
+        // Vertical: prefer below the card; flip above if it would run off the bottom;
+        // otherwise pin into the region below the nav.
+        let top = cr.bottom + gutter;
+        if (top + height > vh - gutter) {
+            const above = cr.top - gutter - height;
+            top = above >= navH + gutter ? above : Math.max(navH + gutter, vh - gutter - height);
+        }
+        if (top < navH + gutter) top = navH + gutter;
+        setPopupStyle({ ...POPUP_BASE, left, top, maxHeight: maxH, overflow: 'hidden', visibility: 'visible' });
     }, [showPopup]);
 
     const iconBoxStyle: React.CSSProperties = { width: '56px', height: '56px', borderRadius: '10px', flexShrink: 0, background: 'var(--surface-2)', border: '1.2px solid var(--ink-line)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', textDecoration: 'none' };
 
     return (
-        <div onClick={onClick}
+        <div onClick={onClick} ref={cardRef}
             style={{ position: 'relative', borderRadius: '5px', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', padding: '18px', display: 'flex', flexDirection: 'column', gap: '13px', cursor: 'pointer', transition: 'border-color 0.16s, transform 0.16s' }}
             onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = ACCENT; el.style.transform = 'translateY(-3px)'; el.style.zIndex = '100'; setHovered(true); }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = 'var(--ink-line)'; el.style.transform = 'translateY(0)'; el.style.zIndex = ''; setHovered(false); }}>
@@ -94,18 +115,13 @@ function ToolCard({ record, nameField, descSummaryField, faviconField, linkField
                 {category && <Tag text={category} accent />}
             </div>
 
-            {/* Description Summary popup (desktop hover) */}
-            {showPopup && (
-                <div ref={popupRef} role="tooltip"
-                    style={{
-                        position: 'absolute', left: 0, [pos.flip ? 'bottom' : 'top']: 'calc(100% + 8px)',
-                        transform: `translateX(${pos.shiftX}px)`, zIndex: 50, width: 'min(320px, 80vw)',
-                        padding: '14px 16px', borderRadius: '6px', background: 'var(--surface)',
-                        border: '2px solid var(--text-primary)', boxShadow: '5px 5px 0 var(--text-primary)',
-                        pointerEvents: 'none',
-                    }}>
+            {/* Description Summary popup (desktop/tablet hover) — portalled out of the
+                scrolling grid so it can overlap the header and never gets clipped. */}
+            {showPopup && typeof document !== 'undefined' && createPortal(
+                <div ref={popupRef} role="tooltip" style={popupStyle}>
                     <MarkdownText text={preview} />
-                </div>
+                </div>,
+                document.body,
             )}
 
         </div>
@@ -364,6 +380,9 @@ function ToolsApp(): React.ReactElement {
     const [search,         setSearch]         = useState('');
     const [selectedRecord, setSelectedRecord] = useState<any>(null);
     const [showNew,        setShowNew]        = useState(false);
+    // View-all grid has its own filter/sort controls (separate from the Browse-by-Category tiles).
+    const [sortBy,         setSortBy]         = useState<'date' | 'title' | 'category'>('date');
+    const [allCatFilter,   setAllCatFilter]   = useState<string>('all');
 
     const visibleRecords = records.filter(r => {
         if (!statusField) return true;
@@ -409,18 +428,26 @@ function ToolsApp(): React.ReactElement {
                 return name.toLowerCase().includes(q) || org.toLowerCase().includes(q) || summary.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
             });
         }
-        if (view === 'all') return recordsByNewest;
+        if (view === 'all') {
+            // The displayed title is the org (falling back to the tool name), matching the card.
+            const titleOf = (r: any) => (orgField && r.getCellValueAsString(orgField)) || (nameField ? r.getCellValueAsString(nameField) : r.name) || '';
+            let list = allCatFilter === 'all' ? recordsByNewest : recordsByNewest.filter(r => getSingleSelectName(r, categoryField) === allCatFilter);
+            if (sortBy === 'title') {
+                list = [...list].sort((a, b) => titleOf(a).localeCompare(titleOf(b), undefined, { sensitivity: 'base' }));
+            } else if (sortBy === 'category') {
+                list = [...list].sort((a, b) => getSingleSelectName(a, categoryField).localeCompare(getSingleSelectName(b, categoryField), undefined, { sensitivity: 'base' }) || titleOf(a).localeCompare(titleOf(b), undefined, { sensitivity: 'base' }));
+            }
+            // 'date' keeps recordsByNewest order (already Created descending).
+            return list;
+        }
         if (!activeCategory || !categoryField) return [];
-        return visibleRecords.filter(r => {
-            const v = r.getCellValue(categoryField);
-            const cat = v && typeof v === 'object' && 'name' in v ? (v as { name: string }).name : '';
-            return cat === activeCategory;
-        });
-    }, [isSearching, search, view, activeCategory, visibleRecords, recordsByNewest, categoryField, nameField, orgField, summaryField, descSummaryField]);
+        return visibleRecords.filter(r => getSingleSelectName(r, categoryField) === activeCategory);
+    }, [isSearching, search, view, activeCategory, allCatFilter, sortBy, visibleRecords, recordsByNewest, categoryField, nameField, orgField, summaryField, descSummaryField]);
 
     if (!table)     return <div style={{ padding: '24px' }}>No table found.</div>;
 
     const contentTitle = isSearching ? `Results for "${search}"` : view === 'all' ? 'All Tools' : activeCategory ?? '';
+    const controlSelectStyle: React.CSSProperties = { ...monoLabel, fontSize: '10px', color: 'var(--text-primary)', background: 'var(--surface)', border: '1.5px solid var(--ink-line)', borderRadius: '5px', padding: '7px 9px', cursor: 'pointer', outline: 'none' };
 
     return (
         <>
@@ -523,9 +550,24 @@ function ToolsApp(): React.ReactElement {
                         <>
                             {/* Content header */}
                             <div style={{ flexShrink: 0, borderBottom: '1.5px solid var(--ink-line)' }}>
-                                <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', padding: '14px clamp(16px, 3vw, 32px) 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '100%', maxWidth: '1100px', margin: '0 auto', padding: '14px clamp(16px, 3vw, 32px) 12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                                     <span style={{ fontFamily: MONO, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{contentTitle}</span>
                                     <span style={{ ...monoLabel, color: ACCENT_DEEP }}>[{String(displayedRecords.length).padStart(2, '0')}]</span>
+                                    {view === 'all' && !isSearching && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto', flexWrap: 'wrap' }}>
+                                            <span style={{ ...monoLabel, color: 'var(--text-muted)' }}>Category</span>
+                                            <select value={allCatFilter} onChange={e => setAllCatFilter(e.target.value)} aria-label="Filter by category" style={controlSelectStyle}>
+                                                <option value="all">All</option>
+                                                {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                            <span style={{ ...monoLabel, color: 'var(--text-muted)' }}>Sort</span>
+                                            <select value={sortBy} onChange={e => setSortBy(e.target.value as 'date' | 'title' | 'category')} aria-label="Sort by" style={controlSelectStyle}>
+                                                <option value="date">Date added</option>
+                                                <option value="title">Title</option>
+                                                <option value="category">Category</option>
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
