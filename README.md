@@ -57,7 +57,9 @@ Four layers do the heavy lifting:
    an HMAC-signed, httpOnly session cookie.
 4. **Shared brutalist UI** (`lib/components/`) — one nav, one modal size, one help-popup
    pattern, one loading state, and a scroll-progress bar, so every page looks and behaves
-   the same.
+   the same. The interface pages also draw on shared design tokens and primitives
+   (`brutalist.tsx`), a small markdown renderer for AI summaries (`Markdown.tsx`), and
+   cell-value readers (`airtable/cells.ts`) instead of redefining them per page.
 
 ---
 
@@ -100,12 +102,15 @@ webapp/
 │   │   ├── MarqueeLoader.tsx       # Data-loading state: scrolling page-name marquee
 │   │   ├── InfoModal.tsx           # HelpButton "?" + per-page help popup
 │   │   ├── LiveField.tsx           # Shimmer-until-filled field (live AI preview on create)
+│   │   ├── brutalist.tsx           # Design tokens + shared primitives (Tag, SectionLabel, CornerBrackets…)
+│   │   ├── Markdown.tsx            # Tiny markdown renderer for AI summary / description fields
 │   │   └── modalStyle.ts           # Shared modal sizing: 80vw desktop / full-screen mobile, below nav
 │   └── airtable/                   # ★ The SDK-compatibility data layer
 │       ├── server.ts               # Server helper: token + fetch wrapper + error JSON
 │       ├── hooks.tsx               # useBase() / useRecords() (SWR) + <AirtableBoundary>
 │       ├── models.ts               # Base / Table / Field / Record classes + write methods
 │       ├── normalize.ts            # Translate REST value shapes ↔ Blocks SDK shapes
+│       ├── cells.ts                # Cell-value readers (favicon URL, created time, select names)
 │       ├── projection.ts           # Per-table field allowlist (fetch only what's used)
 │       ├── fieldTypes.ts           # FieldType enum (Airtable field-type string constants)
 │       ├── types.ts                # Raw REST response types
@@ -203,6 +208,10 @@ table is pinned by id where a base has many tables.
    add a help entry in `lib/help.ts`.
 5. For modals, spread `modalOverlayStyle`/`modalCardStyle` so the popup matches every other
    one (sized below the nav, with a reachable close button).
+6. Reuse the shared building blocks instead of re-deriving them: design tokens + primitives
+   from `lib/components/brutalist.tsx`, `<MarkdownText>` from `lib/components/Markdown.tsx`,
+   and the cell readers (`getFaviconUrl`, `getCreatedTime`, `getSingleSelectName`,
+   `getSelectNames`) from `lib/airtable/cells.ts`.
 
 ---
 

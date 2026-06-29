@@ -19,7 +19,7 @@ export function MarqueeLoader() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
             {/* Continuously scrolling page names */}
-            <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', opacity: 0.1 }}>
+            <div aria-hidden style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', opacity: 0.1 }}>
                 {Array.from({ length: 9 }).map((_, row) => {
                     const off = row % ITEMS.length;
                     const rowItems = [...ITEMS.slice(off), ...ITEMS.slice(0, off)];

@@ -7,6 +7,9 @@ import { useIsNarrow } from '@/lib/useIsNarrow';
 import { modalOverlayStyle, modalCardStyle } from '@/lib/components/modalStyle';
 import { HelpButton } from '@/lib/components/InfoModal';
 import { LiveField } from '@/lib/components/LiveField';
+import { ACCENT, ACCENT_DEEP, ACCENT_TEXT, INK, MONO, monoLabel, CornerBrackets, BlackLabel, Tag, SectionLabel } from '@/lib/components/brutalist';
+import { MarkdownText } from '@/lib/components/Markdown';
+import { getFaviconUrl, getCreatedTime, getSelectNames } from '@/lib/airtable/cells';
 import {
     XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowLeftIcon,
     CaretRightIcon, SquaresFourIcon, PlusIcon, PaperclipIcon, FileIcon,
@@ -30,14 +33,6 @@ const PROOF_ID    = 'fldEmoFMRpw1ABTnz'; // Proof of Completion (attachments)
 const NOTES_ID    = 'fld4rTHccanhp8XPJ'; // Notes (multilineText)
 const LINK_ID     = 'fldE1JRL5yntz8z5u'; // Link (url)
 const CREATED_ID  = 'fldWQC5MEOX0W7V5P'; // Created (createdTime)
-
-const ACCENT      = '#F5C13D'; // amber primary
-const ACCENT_DEEP = '#E3A81B'; // darker amber (tags / icons on tint)
-const ACCENT_TEXT = '#2c2510'; // dark text on amber
-const INK         = '#23262e'; // charcoal (line-art ink / titles / pills)
-
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
-const monoLabel: React.CSSProperties = { fontFamily: MONO, fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' };
 
 // ── The progress status model (the one Update single-select drives everything) ──
 const STATUS_ORDER = ['Saved', 'In Progress', 'Completed'] as const;
@@ -66,32 +61,6 @@ const CATEGORY_ICON: Record<string, React.ComponentType<any>> = {
 };
 const categoryIcon = (cat: string): React.ComponentType<any> => CATEGORY_ICON[cat] ?? GraduationCapIcon;
 
-// ── Brutalist primitives ──────────────────────────────────────────────────────
-function CornerBrackets({ inset = 8, size = 11, color = 'var(--ink-line)' }: { inset?: number; size?: number; color?: string }) {
-    const b = `1.5px solid ${color}`;
-    const base: React.CSSProperties = { position: 'absolute', width: `${size}px`, height: `${size}px`, pointerEvents: 'none', zIndex: 3 };
-    return (
-        <>
-            <div style={{ ...base, top: inset, left: inset, borderTop: b, borderLeft: b }} />
-            <div style={{ ...base, top: inset, right: inset, borderTop: b, borderRight: b }} />
-            <div style={{ ...base, bottom: inset, left: inset, borderBottom: b, borderLeft: b }} />
-            <div style={{ ...base, bottom: inset, right: inset, borderBottom: b, borderRight: b }} />
-        </>
-    );
-}
-
-function BlackLabel({ text }: { text: string }) {
-    return <div style={{ ...monoLabel, padding: '7px 12px', color: '#fff', background: INK }}>{text}</div>;
-}
-
-function Tag({ text, accent }: { text: string; accent?: boolean }) {
-    return <span style={{ ...monoLabel, padding: '3px 8px', borderRadius: '3px', whiteSpace: 'nowrap', color: accent ? ACCENT_DEEP : 'var(--text-muted)', background: accent ? 'var(--accent-soft)' : 'transparent', border: `1.2px solid ${accent ? 'transparent' : 'var(--ink-line)'}` }}>{text}</span>;
-}
-
-function SectionLabel({ text }: { text: string }) {
-    return <div style={{ fontFamily: MONO, fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--text-muted)', marginBottom: '10px' }}>{text}</div>;
-}
-
 function StatusBadge({ status }: { status: Status }) {
     const m = STATUS_META[status];
     return (
@@ -99,37 +68,6 @@ function StatusBadge({ status }: { status: Status }) {
             <m.Icon size={11} weight="bold" /> {status}
         </span>
     );
-}
-
-// ── Field helpers ───────────────────────────────────────────────────────────────
-function getFaviconUrl(record: any, faviconField: any): string | null {
-    if (!faviconField) return null;
-    const v = record.getCellValue(faviconField);
-    if (!Array.isArray(v) || v.length === 0) return null;
-    const att = v[0];
-    return att?.thumbnails?.small?.url ?? att?.url ?? null;
-}
-
-function getCreatedTime(record: any, createdField: any): number {
-    if (!createdField) return 0;
-    const raw = record.getCellValue(createdField);
-    if (typeof raw === 'number') return raw;
-    if (raw instanceof Date) return raw.getTime();
-    if (typeof raw === 'string') { const t = Date.parse(raw); if (!Number.isNaN(t)) return t; }
-    const s = record.getCellValueAsString(createdField);
-    const t = Date.parse(s);
-    return Number.isNaN(t) ? 0 : t;
-}
-
-// Category is a multipleSelects field holding the course's languages (e.g. ["JS", "C#"]).
-// Normalize returns an array of { name } objects; this flattens it to language strings.
-function getCategories(record: any, categoryField: any): string[] {
-    if (!categoryField) return [];
-    const v = record.getCellValue(categoryField);
-    if (Array.isArray(v)) return v.map(x => (typeof x === 'string' ? x : (x && typeof x === 'object' && 'name' in x ? (x as { name: string }).name : ''))).filter(Boolean);
-    if (v && typeof v === 'object' && 'name' in v) return [(v as { name: string }).name];
-    if (typeof v === 'string' && v) return [v];
-    return [];
 }
 
 // Favicon image with a graduation-cap fallback (used in cards and the detail header)
@@ -144,56 +82,6 @@ function FaviconIcon({ url, iconSize }: { url: string | null; iconSize: number }
     return <GraduationCapIcon size={iconSize} color={ACCENT_DEEP} weight="bold" />;
 }
 
-// ── Markdown (summary rendering) ──────────────────────────────────────────────
-function renderInline(line: string): React.ReactNode[] {
-    line = line.replace(/^\*{2,3}|\*{2,3}$/g, '').trim();
-    const parts: React.ReactNode[] = [];
-    const re = /(\*{3}(.+?)\*{3}|\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|\[(.+?)\]\((.+?)\))/g;
-    let last = 0; let m: RegExpExecArray | null;
-    while ((m = re.exec(line)) !== null) {
-        if (m.index > last) parts.push(line.slice(last, m.index).replace(/\*+/g, ''));
-        if (m[2])      parts.push(<strong key={m.index}><em>{m[2]}</em></strong>);
-        else if (m[3]) parts.push(<strong key={m.index}>{m[3]}</strong>);
-        else if (m[4]) parts.push(<em key={m.index}>{m[4]}</em>);
-        else if (m[5]) parts.push(<code key={m.index} style={{ background: 'var(--surface-2)', padding: '1px 5px', borderRadius: '4px', fontSize: '12px', fontFamily: 'monospace' }}>{m[5]}</code>);
-        else if (m[6]) parts.push(<a key={m.index} href={m[7]} target="_blank" rel="noopener noreferrer" style={{ color: INK, textDecoration: 'underline' }}>{m[6]}</a>);
-        last = m.index + m[0].length;
-    }
-    if (last < line.length) parts.push(line.slice(last).replace(/\*+/g, ''));
-    return parts;
-}
-
-function MarkdownText({ text }: { text: string }): React.ReactElement {
-    const lines = text.split('\n');
-    const elements: React.ReactNode[] = [];
-    let i = 0;
-    while (i < lines.length) {
-        const line = lines[i] ?? '';
-        const hm = line.match(/^(#{1,3})\s+(.*)/);
-        if (hm) {
-            const sizes = ['16px', '15px', '14px'];
-            elements.push(<div key={i} style={{ margin: '12px 0 4px', fontSize: sizes[(hm[1]?.length ?? 1) - 1], fontWeight: 700, color: 'var(--text-primary)' }}>{renderInline(hm[2] ?? '')}</div>);
-        } else if (/^[-*]\s+/.test(line)) {
-            const items: React.ReactNode[] = [];
-            while (i < lines.length && /^[-*]\s+/.test(lines[i] ?? '')) { items.push(<li key={i} style={{ marginBottom: '3px' }}>{renderInline((lines[i] ?? '').replace(/^[-*]\s+/, ''))}</li>); i++; }
-            elements.push(<ul key={`ul-${i}`} style={{ margin: '6px 0', paddingLeft: '18px', listStyleType: 'disc' }}>{items}</ul>);
-            continue;
-        } else if (/^\d+\.\s+/.test(line)) {
-            const items: React.ReactNode[] = [];
-            while (i < lines.length && /^\d+\.\s+/.test(lines[i] ?? '')) { items.push(<li key={i} style={{ marginBottom: '3px' }}>{renderInline((lines[i] ?? '').replace(/^\d+\.\s+/, ''))}</li>); i++; }
-            elements.push(<ol key={`ol-${i}`} style={{ margin: '6px 0', paddingLeft: '18px' }}>{items}</ol>);
-            continue;
-        } else if (line.trim() === '' || /^-{3,}$/.test(line.trim())) {
-            elements.push(<div key={i} style={{ height: '8px' }} />);
-        } else {
-            const r = renderInline(line);
-            if (r.some(x => x !== '')) elements.push(<p key={i} style={{ margin: '0 0 6px' }}>{r}</p>);
-        }
-        i++;
-    }
-    return <div style={{ fontSize: '13px', lineHeight: 1.7, color: 'var(--text-primary)' }}>{elements}</div>;
-}
-
 // ── Course card (grid) ──────────────────────────────────────────────────────────
 function CourseCard({ record, table, nameField, summaryField, faviconField, linkField, orgField, categoryField, updateField, index, onClick }: {
     record: any; table: any; nameField: any; summaryField: any; faviconField: any; linkField: any; orgField: any; categoryField: any; updateField: any; index?: number; onClick: () => void;
@@ -202,7 +90,7 @@ function CourseCard({ record, table, nameField, summaryField, faviconField, link
     const name       = nameField    ? record.getCellValueAsString(nameField)    : record.name;
     const favicon    = getFaviconUrl(record, faviconField);
     const link       = linkField ? record.getCellValueAsString(linkField) : '';
-    const categories = getCategories(record, categoryField);
+    const categories = getSelectNames(record, categoryField);
     const status     = getStatus(record, updateField);
 
     // Save toggles: a course with no status becomes Saved; clicking Saved again
@@ -292,7 +180,7 @@ function CourseModal({ record, table, nameField, summaryField, linkField, orgFie
     const org      = orgField     ? record.getCellValueAsString(orgField)     : '';
     const link     = linkField    ? record.getCellValueAsString(linkField)    : '';
     const summary  = summaryField ? record.getCellValueAsString(summaryField) : '';
-    const categories = getCategories(record, categoryField);
+    const categories = getSelectNames(record, categoryField);
     const favicon  = getFaviconUrl(record, faviconField);
 
     const originalStatus = getStatus(record, updateField);
@@ -567,7 +455,7 @@ function ProgressTracker({ records, updateField, categoryField }: { records: any
         records.forEach(r => {
             const s = getStatus(r, updateField);
             if (s) counts[s] += 1;
-            getCategories(r, categoryField).forEach(cat => {
+            getSelectNames(r, categoryField).forEach(cat => {
                 byCategory[cat] ??= { done: 0, total: 0 };
                 byCategory[cat].total += 1;
                 if (s === 'Completed') byCategory[cat].done += 1;
@@ -739,7 +627,7 @@ function NewCourseForm({ table, records, onClose }: { table: any; records: reado
     const liveName = rec && nameField    ? rec.getCellValueAsString(nameField)    : '';
     const liveOrg  = rec && orgField     ? rec.getCellValueAsString(orgField)     : '';
     const liveSumm = rec && summaryField ? rec.getCellValueAsString(summaryField) : '';
-    const liveCat  = rec ? getCategories(rec, categoryField).join(', ') : '';
+    const liveCat  = rec ? getSelectNames(rec, categoryField).join(', ') : '';
 
     useEffect(() => {
         const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -787,7 +675,7 @@ function NewCourseForm({ table, records, onClose }: { table: any; records: reado
                                 <LiveField label="Course" value={liveName || (courseField ? rec.getCellValueAsString(courseField) : '')} />
                                 <LiveField label="Organization" value={liveOrg} />
                                 <LiveField label="Category" value={liveCat} />
-                                <LiveField label="Summary" value={liveSumm} />
+                                <LiveField label="Summary" value={liveSumm} render={v => <MarkdownText text={v} />} />
                             </>
                         )}
 
@@ -844,7 +732,7 @@ function CoursesApp(): React.ReactElement {
 
     const categoryMap = useMemo(() => {
         const map: Record<string, number> = {};
-        records.forEach(r => { getCategories(r, categoryField).forEach(cat => { map[cat] = (map[cat] ?? 0) + 1; }); });
+        records.forEach(r => { getSelectNames(r, categoryField).forEach(cat => { map[cat] = (map[cat] ?? 0) + 1; }); });
         return map;
     }, [records, categoryField]);
     const allCategories = useMemo(() => Object.keys(categoryMap).sort(), [categoryMap]);
@@ -876,7 +764,7 @@ function CoursesApp(): React.ReactElement {
             });
         }
         if (statusFilter !== 'all') list = list.filter(r => getStatus(r, updateField) === statusFilter);
-        if (categoryFilter !== 'all') list = list.filter(r => getCategories(r, categoryField).includes(categoryFilter));
+        if (categoryFilter !== 'all') list = list.filter(r => getSelectNames(r, categoryField).includes(categoryFilter));
         return list;
     }, [isSearching, search, recordsByNewest, statusFilter, categoryFilter, categoryField, nameField, orgField, summaryField, updateField]);
 

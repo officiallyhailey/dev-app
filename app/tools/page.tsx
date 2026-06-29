@@ -7,64 +7,14 @@ import { useIsNarrow } from '@/lib/useIsNarrow';
 import { modalOverlayStyle, modalCardStyle } from '@/lib/components/modalStyle';
 import { HelpButton } from '@/lib/components/InfoModal';
 import { LiveField } from '@/lib/components/LiveField';
-type Field = any;
+import { ACCENT, ACCENT_DEEP, ACCENT_TEXT, INK, MONO, monoLabel, CornerBrackets, BlackLabel, Tag, SectionLabel } from '@/lib/components/brutalist';
+import { MarkdownText } from '@/lib/components/Markdown';
+import { getFaviconUrl, getCreatedTime, getSingleSelectName } from '@/lib/airtable/cells';
 import { LinkIcon, XIcon, MagnifyingGlassIcon, ArrowUpRightIcon, ArrowRightIcon, ArrowLeftIcon, CaretRightIcon, SquaresFourIcon, PlusIcon } from '@phosphor-icons/react';
 
-const ACCENT      = '#F5C13D'; // amber primary
-const ACCENT_DEEP = '#E3A81B'; // darker amber (tags / icons on tint)
-const ACCENT_TEXT = '#2c2510'; // dark text on amber
-const INK         = '#23262e'; // charcoal (line-art ink / titles / pills)
-const TEAL        = INK;       // secondary accent is charcoal to match the devwork theme
+type Field = any;
 
-const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
-const monoLabel: React.CSSProperties = { fontFamily: MONO, fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' };
-
-// ── Brutalist primitives ──────────────────────────────────────────────────────
-function CornerBrackets({ inset = 8, size = 11, color = 'var(--ink-line)' }: { inset?: number; size?: number; color?: string }) {
-    const b = `1.5px solid ${color}`;
-    const base: React.CSSProperties = { position: 'absolute', width: `${size}px`, height: `${size}px`, pointerEvents: 'none', zIndex: 3 };
-    return (
-        <>
-            <div style={{ ...base, top: inset, left: inset, borderTop: b, borderLeft: b }} />
-            <div style={{ ...base, top: inset, right: inset, borderTop: b, borderRight: b }} />
-            <div style={{ ...base, bottom: inset, left: inset, borderBottom: b, borderLeft: b }} />
-            <div style={{ ...base, bottom: inset, right: inset, borderBottom: b, borderRight: b }} />
-        </>
-    );
-}
-
-// A black "// LABEL" header bar (ORBIT / Manual spec-table style)
-function BlackLabel({ text }: { text: string }) {
-    return <div style={{ ...monoLabel, padding: '7px 12px', color: '#fff', background: INK }}>{text}</div>;
-}
-
-// Bordered mono tag (square)
-function Tag({ text, accent }: { text: string; accent?: boolean }) {
-    return <span style={{ ...monoLabel, padding: '3px 8px', borderRadius: '3px', whiteSpace: 'nowrap', color: accent ? ACCENT_DEEP : 'var(--text-muted)', background: accent ? 'var(--accent-soft)' : 'transparent', border: `1.2px solid ${accent ? 'transparent' : 'var(--ink-line)'}` }}>{text}</span>;
-}
-
-// ── Field helpers ───────────────────────────────────────────────────────────────
-function getFaviconUrl(record: any, faviconField: any): string | null {
-    if (!faviconField) return null;
-    const v = record.getCellValue(faviconField);
-    if (!Array.isArray(v) || v.length === 0) return null;
-    const att = v[0];
-    return att?.thumbnails?.small?.url ?? att?.url ?? null;
-}
-
-function getCreatedTime(record: any, createdField: any): number {
-    if (!createdField) return 0;
-    const raw = record.getCellValue(createdField);
-    if (typeof raw === 'number') return raw;
-    if (raw instanceof Date) return raw.getTime();
-    if (typeof raw === 'string') { const t = Date.parse(raw); if (!Number.isNaN(t)) return t; }
-    // Fallback: the formatted string (handles cases where getCellValue returns an object/null)
-    const s = record.getCellValueAsString(createdField);
-    const t = Date.parse(s);
-    return Number.isNaN(t) ? 0 : t;
-}
-
-// Favicon image with LinkIcon fallback (used in cards and the detail header)
+// Favicon image with a LinkIcon fallback (used in cards and the detail header).
 function FaviconIcon({ url, iconSize }: { url: string | null; iconSize: number }) {
     const [failed, setFailed] = useState(false);
     if (url && !failed) {
@@ -73,61 +23,7 @@ function FaviconIcon({ url, iconSize }: { url: string | null; iconSize: number }
                 style={{ width: `${iconSize}px`, height: `${iconSize}px`, borderRadius: '7px', objectFit: 'cover', display: 'block' }} />
         );
     }
-    return <LinkIcon size={iconSize} color={TEAL} weight="bold" />;
-}
-
-// ── Markdown ──────────────────────────────────────────────────────────────────
-function renderInline(line: string): React.ReactNode[] {
-    line = line.replace(/^\*{2,3}|\*{2,3}$/g, '').trim();
-    const parts: React.ReactNode[] = [];
-    const re = /(\*{3}(.+?)\*{3}|\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|\[(.+?)\]\((.+?)\))/g;
-    let last = 0; let m: RegExpExecArray | null;
-    while ((m = re.exec(line)) !== null) {
-        if (m.index > last) parts.push(line.slice(last, m.index).replace(/\*+/g, ''));
-        if (m[2])      parts.push(<strong key={m.index}><em>{m[2]}</em></strong>);
-        else if (m[3]) parts.push(<strong key={m.index}>{m[3]}</strong>);
-        else if (m[4]) parts.push(<em key={m.index}>{m[4]}</em>);
-        else if (m[5]) parts.push(<code key={m.index} style={{ background: 'var(--surface-2)', padding: '1px 5px', borderRadius: '4px', fontSize: '12px', fontFamily: 'monospace' }}>{m[5]}</code>);
-        else if (m[6]) parts.push(<a key={m.index} href={m[7]} target="_blank" rel="noopener noreferrer" style={{ color: TEAL, textDecoration: 'underline' }}>{m[6]}</a>);
-        last = m.index + m[0].length;
-    }
-    if (last < line.length) parts.push(line.slice(last).replace(/\*+/g, ''));
-    return parts;
-}
-
-function MarkdownText({ text }: { text: string }): React.ReactElement {
-    const lines = text.split('\n');
-    const elements: React.ReactNode[] = [];
-    let i = 0;
-    while (i < lines.length) {
-        const line = lines[i] ?? '';
-        const hm = line.match(/^(#{1,3})\s+(.*)/);
-        if (hm) {
-            const sizes = ['16px', '15px', '14px'];
-            elements.push(<div key={i} style={{ margin: '12px 0 4px', fontSize: sizes[(hm[1]?.length ?? 1) - 1], fontWeight: 700, color: 'var(--text-primary)' }}>{renderInline(hm[2] ?? '')}</div>);
-        } else if (/^[-*]\s+/.test(line)) {
-            const items: React.ReactNode[] = [];
-            while (i < lines.length && /^[-*]\s+/.test(lines[i] ?? '')) { items.push(<li key={i} style={{ marginBottom: '3px' }}>{renderInline((lines[i] ?? '').replace(/^[-*]\s+/, ''))}</li>); i++; }
-            elements.push(<ul key={`ul-${i}`} style={{ margin: '6px 0', paddingLeft: '18px', listStyleType: 'disc' }}>{items}</ul>);
-            continue;
-        } else if (/^\d+\.\s+/.test(line)) {
-            const items: React.ReactNode[] = [];
-            while (i < lines.length && /^\d+\.\s+/.test(lines[i] ?? '')) { items.push(<li key={i} style={{ marginBottom: '3px' }}>{renderInline((lines[i] ?? '').replace(/^\d+\.\s+/, ''))}</li>); i++; }
-            elements.push(<ol key={`ol-${i}`} style={{ margin: '6px 0', paddingLeft: '18px' }}>{items}</ol>);
-            continue;
-        } else if (line.trim() === '' || /^-{3,}$/.test(line.trim())) {
-            elements.push(<div key={i} style={{ height: '8px' }} />);
-        } else {
-            const r = renderInline(line);
-            if (r.some(x => x !== '')) elements.push(<p key={i} style={{ margin: '0 0 6px' }}>{r}</p>);
-        }
-        i++;
-    }
-    return <div style={{ fontSize: '13px', lineHeight: 1.7, color: 'var(--text-primary)' }}>{elements}</div>;
-}
-
-function SectionLabel({ text }: { text: string }) {
-    return <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--text-muted)', marginBottom: '10px' }}>{text}</div>;
+    return <LinkIcon size={iconSize} color={INK} weight="bold" />;
 }
 
 // ── Tool card (grid) ──────────────────────────────────────────────────────────
@@ -141,8 +37,7 @@ function ToolCard({ record, nameField, descSummaryField, faviconField, linkField
     const preview    = rawSummary.length > 600 ? rawSummary.slice(0, 600).trimEnd() + '…' : rawSummary;
     const favicon    = getFaviconUrl(record, faviconField);
     const link       = linkField ? record.getCellValueAsString(linkField) : '';
-    const catValue   = categoryField ? record.getCellValue(categoryField) : null;
-    const category   = catValue && typeof catValue === 'object' && 'name' in catValue ? (catValue as { name: string }).name : '';
+    const category   = getSingleSelectName(record, categoryField);
 
     // Desktop only: hovering the card reveals the Description Summary in a popup that
     // stays clamped inside the viewport (and flips above the card when there's no room below).
@@ -219,8 +114,8 @@ function ToolCard({ record, nameField, descSummaryField, faviconField, linkField
 
 
 // ── Tool detail — centered modal overlay ──────────────────────────────────────
-function ToolModal({ record, nameField, summaryField, linkField, orgField, categoryField, faviconField, createdField, onClose }: {
-    record: any; nameField: any; summaryField: any; linkField: any; orgField: any; categoryField: any; faviconField: any; createdField: any; onClose: () => void;
+function ToolModal({ record, nameField, summaryField, linkField, orgField, faviconField, onClose }: {
+    record: any; nameField: any; summaryField: any; linkField: any; orgField: any; faviconField: any; onClose: () => void;
 }) {
     const isNarrow = useIsNarrow();
     const name     = nameField     ? record.getCellValueAsString(nameField)    : record.name;
@@ -301,9 +196,9 @@ function CategoryTile({ label, count, onClick }: { label: string; count: number;
     );
 }
 
-function HomeView({ visibleRecords, recentRecords, allCategories, categoryMap, nameField, descSummaryField, faviconField, linkField, orgField, categoryField, createdField, onSelectRecord, onSelectCategory, onViewAll }: {
-    visibleRecords: any[]; recentRecords: any[]; allCategories: string[]; categoryMap: Record<string, number>;
-    nameField: any; descSummaryField: any; faviconField: any; linkField: any; orgField: any; categoryField: any; createdField: any;
+function HomeView({ recentRecords, allCategories, categoryMap, nameField, descSummaryField, faviconField, linkField, orgField, categoryField, onSelectRecord, onSelectCategory, onViewAll }: {
+    recentRecords: any[]; allCategories: string[]; categoryMap: Record<string, number>;
+    nameField: any; descSummaryField: any; faviconField: any; linkField: any; orgField: any; categoryField: any;
     onSelectRecord: (r: any) => void; onSelectCategory: (c: string) => void; onViewAll: () => void;
 }) {
     return (
@@ -418,7 +313,7 @@ function NewToolForm({ table, records, onClose }: { table: any; records: readonl
                             <>
                                 <LiveField label="Name" value={liveName} />
                                 <LiveField label="Organization" value={liveOrg} />
-                                <LiveField label="Summary" value={liveSumm} />
+                                <LiveField label="Summary" value={liveSumm} render={v => <MarkdownText text={v} />} />
                             </>
                         )}
 
@@ -447,7 +342,6 @@ function NewToolForm({ table, records, onClose }: { table: any; records: readonl
 function ToolsApp(): React.ReactElement {
     const isNarrow = useIsNarrow();
     const base    = useBase();
-    const errorState = null;
     // Tools table (pinned; the standalone base has many tables).
     const table   = base.tables.find(t => t.id === 'tbl0FXLrhpxXfI9Uv') ?? base.tables[0];
     const records = useRecords(table);
@@ -527,7 +421,6 @@ function ToolsApp(): React.ReactElement {
         });
     }, [isSearching, search, view, activeCategory, visibleRecords, recordsByNewest, categoryField, nameField, orgField, summaryField, descSummaryField]);
 
-    if (errorState) return <div style={{ padding: '24px', color: '#c0392b' }}>Error loading properties.</div>;
     if (!table)     return <div style={{ padding: '24px' }}>No table found.</div>;
 
     const contentTitle = isSearching ? `Results for "${search}"` : view === 'all' ? 'All Tools' : activeCategory ?? '';
@@ -616,7 +509,6 @@ function ToolsApp(): React.ReactElement {
                 <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                     {(view === 'home' && !isSearching) ? (
                         <HomeView
-                            visibleRecords={visibleRecords}
                             recentRecords={recentRecords}
                             allCategories={allCategories}
                             categoryMap={categoryMap}
@@ -626,7 +518,6 @@ function ToolsApp(): React.ReactElement {
                             linkField={linkField}
                             orgField={orgField}
                             categoryField={categoryField}
-                            createdField={createdField}
                             onSelectRecord={r => setSelectedRecord(r)}
                             onSelectCategory={cat => { setView('category'); setActiveCategory(cat); setSearch(''); }}
                             onViewAll={() => { setView('all'); setSearch(''); }}
@@ -680,9 +571,7 @@ function ToolsApp(): React.ReactElement {
                     summaryField={summaryField}
                     linkField={linkField}
                     orgField={orgField}
-                    categoryField={categoryField}
                     faviconField={faviconField}
-                    createdField={createdField}
                     onClose={() => setSelectedRecord(null)}
                 />
             )}
